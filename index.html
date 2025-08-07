@@ -124,4 +124,182 @@
 
             if (type === 'success') {
                 messageBox.classList.add('slds-theme_success');
-                messageBox.querySelector('use').setAttribute('xlink:href'
+                messageBox.querySelector('use').setAttribute('xlink:href', 'https://www.lightningdesignsystem.com/assets/icons/utility-sprite/svg/symbols.svg#success');
+            } else if (type === 'error') {
+                messageBox.classList.add('slds-theme_error');
+                messageBox.querySelector('use').setAttribute('xlink:href', 'https://www.lightningdesignsystem.com/assets/icons/utility-sprite/svg/symbols.svg#error');
+            } else {
+                messageBox.classList.add('slds-theme_info');
+                messageBox.querySelector('use').setAttribute('xlink:href', 'https://www.lightningdesignsystem.com/assets/icons/utility-sprite/svg/symbols.svg#info');
+            }
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+            }, 5000);
+        };
+
+        const renderTable = () => {
+            videoTableBody.innerHTML = '';
+            videoData.forEach(video => {
+                const row = document.createElement('tr');
+                row.className = 'slds-hint-parent';
+                row.innerHTML = `
+                    <td data-label="Title">${video.title}</td>
+                    <td data-label="Link"><a href="#${video.id}" class="slds-text-link" onclick="playVideo('${video.id}')">Watch</a></td>
+                    <td data-label="Offline Status"><span id="${video.id}-status" class="slds-badge slds-theme_default">${video.isOffline ? 'Available Offline' : 'Online Only'}</span></td>
+                    <td data-label="Actions" style="text-align: right;">
+                        <button id="${video.id}-sync-btn" class="slds-button slds-button_neutral sync-btn" data-video-id="${video.id}" ${video.isOffline ? 'disabled' : ''}>
+                            ${video.isOffline ? 'Synced' : 'Sync'}
+                        </button>
+                    </td>
+                `;
+                videoTableBody.appendChild(row);
+            });
+            attachSyncListeners();
+        };
+
+        const attachSyncListeners = () => {
+            document.querySelectorAll('.sync-btn').forEach(btn => {
+                btn.onclick = (e) => {
+                    const videoId = e.target.dataset.videoId;
+                    if (videoId) {
+                        syncVideo(videoId);
+                    }
+                };
+            });
+        };
+
+        const playVideo = async (videoId) => {
+            const video = videoData.find(v => v.id === videoId);
+            if (!video) {
+                showMessage('Video not found.', 'error');
+                return;
+            }
+            videoPlayer.src = video.url;
+            showMessage(`Attempting to play video: ${video.title}. The service worker will handle caching.`, 'info');
+            videoPlayerContainer.classList.remove('hidden');
+            videoPlayer.load();
+        };
+
+        const syncVideo = async (videoId) => {
+            const video = videoData.find(v => v.id === videoId);
+            if (!video) return;
+            const syncBtn = document.getElementById(`${videoId}-sync-btn`);
+            const statusSpan = document.getElementById(`${videoId}-status`);
+            syncBtn.disabled = true;
+            syncBtn.textContent = 'Syncing...';
+            statusSpan.textContent = 'Syncing...';
+            statusSpan.className = 'slds-badge slds-theme_warning';
+
+            try {
+                const response = await fetch(video.url);
+                if (!response.ok) {
+                    throw new Error(`Network response was not ok. Status: ${response.status}`);
+                }
+                video.isOffline = true;
+                syncBtn.disabled = true;
+                syncBtn.textContent = 'Synced';
+                statusSpan.textContent = 'Available Offline';
+                statusSpan.className = 'slds-badge slds-theme_success';
+                showMessage(`Video '${video.title}' synced successfully!`, 'success');
+            } catch (error) {
+                console.error(`Failed to sync video: ${video.title}`, error);
+                showMessage(`Failed to sync video '${video.title}'. The video file was not found or could not be accessed. Please ensure the file exists at: ${video.url}`, 'error');
+                video.isOffline = false;
+                syncBtn.disabled = false;
+                syncBtn.textContent = 'Sync';
+                statusSpan.textContent = 'Online Only';
+                statusSpan.className = 'slds-badge slds-theme_default';
+            }
+        };
+
+        const syncAllVideos = async () => {
+            showMessage('Initiated sync for all videos.', 'info');
+            for (const video of videoData) {
+                if (!video.isOffline) {
+                    await syncVideo(video.id);
+                }
+            }
+        };
+        
+        const handleDeepLink = () => {
+            const videoId = window.location.hash.slice(1);
+            if (videoId) {
+                playVideo(videoId);
+            }
+        };
+
+        const DB_NAME = 'offline-videos-db';
+        const DB_VERSION = 1;
+        const DB_STORE_NAME = 'videos';
+        let db;
+
+        const openDatabase = () => {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains(DB_STORE_NAME)) {
+                        db.createObjectStore(DB_STORE_NAME, { keyPath: 'id' });
+                    }
+                };
+                request.onsuccess = (event) => {
+                    resolve(event.target.result);
+                };
+                request.onerror = (event) => {
+                    console.error('IndexedDB error:', event.target.error);
+                    reject(event.target.error);
+                };
+            });
+        };
+
+        const checkOfflineStatus = async () => {
+            const db = await openDatabase();
+            const transaction = db.transaction([DB_STORE_NAME], 'readonly');
+            const store = transaction.objectStore(DB_STORE_NAME);
+            const syncedVideoUrls = await new Promise((resolve, reject) => {
+                const request = store.getAllKeys();
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject([]);
+            });
+
+            videoData.forEach(video => {
+                video.isOffline = syncedVideoUrls.includes(video.url);
+            });
+            renderTable();
+        };
+
+        const initializeApp = async () => {
+            try {
+                db = await openDatabase();
+                await checkOfflineStatus();
+                renderTable();
+                handleDeepLink();
+                syncAllBtn.onclick = syncAllVideos;
+            } catch (error) {
+                console.error('App initialization failed:', error);
+                showMessage('App failed to load. Check console for details.', 'error');
+            }
+        };
+
+        window.addEventListener('load', () => {
+            console.log("App load event fired.");
+            if ('serviceWorker' in navigator && window.location.protocol !== 'blob:') {
+                navigator.serviceWorker.register('service-worker.js')
+                .then(registration => {
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    initializeApp();
+                })
+                .catch(err => {
+                    console.error('ServiceWorker registration failed: ', err);
+                    showMessage('App failed to load. Check console for details.', 'error');
+                    initializeApp(); // Run initialization anyway for a fallback UI
+                });
+            } else {
+                console.warn('Service workers are not supported or available in this browser. PWA features will not be available.');
+                initializeApp(); // Run initialization without service worker support
+            }
+        });
+        window.addEventListener('hashchange', handleDeepLink);
+    </script>
+</body>
+</html>
