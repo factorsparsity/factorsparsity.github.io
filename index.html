@@ -3,81 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Offline Video Player PWA</title>
-    <!-- Link to the external manifest file -->
+    <title>Video Gallery</title>
     <link rel="manifest" href="manifest.json">
-    <!-- SLDS is typically loaded within the Salesforce platform, but for a standalone PWA, you would link to a CDN or a local copy -->
-    <link rel="stylesheet" href="https://www.lightningdesignsystem.com/assets/styles/lightning-design-system.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/@salesforce-ux/design-system@2.22.0/assets/styles/salesforce-lightning-design-system.min.css">
     <style>
         body {
+            background-color: #f3f3f3;
+            padding: 2rem;
             font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
         }
-        /* Custom scrollbar for better aesthetics */
-        ::-webkit-scrollbar {
-            width: 8px;
+        /* Custom styling for the video player container to ensure it's responsive */
+        .video-player-container {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            height: 0;
+            overflow: hidden;
         }
-        ::-webkit-scrollbar-track {
-            background: #e5e7eb;
-            border-radius: 10px;
+        .video-player-container video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
         }
-        ::-webkit-scrollbar-thumb {
-            background: #9ca3af;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #6b7280;
-        }
-        /* Overriding some default SLDS styles for better spacing in this standalone app */
         .slds-card {
             border: 1px solid var(--lwc-colorBorder, #dddbda);
             border-radius: var(--lwc-borderRadiusMedium, .25rem);
         }
+        /* Fix for weird hover effect and spacing in the list */
+        .video-list-item-link {
+            display: block;
+            margin-bottom: 0.5rem;
+            text-decoration: none;
+            color: inherit;
+            transition: background-color 0.1s ease;
+        }
+        .video-list-item-link:hover {
+            background-color: var(--slds-g-color-neutral-base-100, #f3f2f2);
+            text-decoration: none;
+            box-shadow: none;
+        }
+        .video-list-item-link .slds-media {
+            padding: 0.5rem;
+        }
+        /* Fix for the white space and text alignment */
+        .video-list-item-link .slds-media__body {
+            flex: 1;
+        }
+        .video-list-item-link .slds-media__body p {
+            margin-bottom: 0;
+        }
+        /* Responsive adjustments for better legibility on medium-sized screens */
+        @media (max-width: 768px) {
+            .slds-col.slds-medium-size_4-of-12,
+            .slds-col.slds-medium-size_8-of-12 {
+                width: 100%;
+            }
+            .video-list-item-link .slds-media__body .slds-text-heading_small {
+                /* Allow text to wrap on smaller screens */
+                white-space: normal;
+                word-wrap: break-word;
+            }
+        }
     </style>
 </head>
-<body class="slds-p-around_medium slds-m-top_large">
+<body>
 
-    <div class="slds-card slds-p-around_large slds-max-small-size--1-of-1 slds-m-bottom_medium" style="max-width: 60rem; margin: auto;">
-        <div class="slds-card__header slds-grid slds-p-bottom_medium slds-p-horizontal_none">
-            <header class="slds-media slds-media_center slds-has-flexi-truncate">
-                <div class="slds-media__figure">
-                    <span class="slds-icon_container slds-icon-standard-live-agent slds-m-right_x-small" title="PWA Video Player">
-                        <svg class="slds-icon" aria-hidden="true">
-                            <use xlink:href="https://www.lightningdesignsystem.com/assets/icons/standard-sprite/svg/symbols.svg#live_agent"></use>
-                        </svg>
-                        <span class="slds-assistive-text">PWA Video Player</span>
-                    </span>
-                </div>
-                <div class="slds-media__body">
-                    <h2 class="slds-card__header-title">
-                        <span class="slds-text-heading_large slds-text-color_default">Offline Video Sync PWA</span>
-                    </h2>
-                </div>
-            </header>
-        </div>
-        
-        <!-- Status Message Box -->
-        <div id="message-box" class="slds-notify slds-notify_alert slds-theme_info slds-theme_alert-texture slds-m-bottom_medium hidden" role="alert">
-            <span class="slds-assistive-text">Info</span>
-            <span class="slds-icon_container slds-icon-utility-info slds-m-right_x-small">
-                <svg class="slds-icon slds-icon_x-small" aria-hidden="true">
-                    <use xlink:href="https://www.lightningdesignsystem.com/assets/icons/utility-sprite/svg/symbols.svg#info"></use>
-                </svg>
-            </span>
-            <p id="message-text"></p>
-        </div>
-
-        <div class="slds-card__body slds-p-vertical_small slds-p-horizontal_none">
-
-            <!-- Video Player Section -->
-            <div id="video-player-container" class="slds-m-bottom_medium hidden">
-                <video id="video-player" controls style="width: 100%; border-radius: var(--lwc-borderRadiusMedium, .25rem);"></video>
-            </div>
-
-            <!-- Main Video List Section -->
-            <div class="slds-grid slds-grid_vertical-align-center slds-m-bottom_medium">
-                <div class="slds-text-heading_medium slds-m-right_large slds-col_bump-right">Video List</div>
-                <div class="slds-button_group" role="group">
+    <div class="slds-scope">
+        <div class="slds-card slds-card_boundary slds-m-around_large">
+            <div class="slds-card__header slds-grid">
+                <header class="slds-media slds-media_center slds-has-flexi-truncate">
+                    <div class="slds-media__figure">
+                        <span class="slds-icon_container slds-icon-standard-video" title="Video Gallery">
+                            <svg class="slds-icon slds-icon_small" aria-hidden="true">
+                                <use xlink:href="https://www.lightningdesignsystem.com/assets/icons/standard-sprite/svg/symbols.svg#video"></use>
+                            </svg>
+                            <span class="slds-assistive-text">Video Gallery</span>
+                        </span>
+                    </div>
+                    <div class="slds-media__body">
+                        <h2 class="slds-card__header-title">
+                            <a href="#" class="slds-card__header-link slds-truncate" title="Video Gallery">
+                                <span>Video Gallery</span>
+                            </a>
+                        </h2>
+                    </div>
+                </header>
+                <div class="slds-no-flex">
                     <button id="sync-all-btn" class="slds-button slds-button_brand">
                         <svg class="slds-button__icon slds-button__icon_left" aria-hidden="true">
                             <use xlink:href="https://www.lightningdesignsystem.com/assets/icons/utility-sprite/svg/symbols.svg#sync"></use>
@@ -86,237 +98,301 @@
                     </button>
                 </div>
             </div>
+            
+            <div class="slds-card__body slds-p-around_medium">
+                <div class="slds-grid slds-wrap slds-gutters_medium">
+                    <div class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12">
+                        <div class="slds-card slds-card_boundary">
+                            <div class="slds-card__header">
+                                <header class="slds-media slds-media_center slds-has-flexi-truncate">
+                                    <div class="slds-media__figure">
+                                        <span class="slds-icon_container slds-icon-utility-list" title="Available Videos">
+                                            <svg class="slds-icon slds-icon_small" aria-hidden="true">
+                                                <use xlink:href="https://www.lightningdesignsystem.com/assets/icons/utility-sprite/svg/symbols.svg#list"></use>
+                                            </svg>
+                                        </span>
+                                    </div>
+                                    <div class="slds-media__body">
+                                        <h2 class="slds-text-heading_small slds-truncate" title="Video List">Video List</h2>
+                                    </div>
+                                </header>
+                            </div>
+                            <div class="slds-card__body">
+                                <ul id="video-list" class="slds-has-dividers_around-space">
+                                    </ul>
+                            </div>
+                        </div>
+                    </div>
 
-            <!-- Video Table -->
-            <div class="slds-table_edit">
-                <table class="slds-table slds-table_bordered slds-table_cell-buffer slds-table_fixed-layout">
-                    <thead>
-                        <tr class="slds-line-height_reset">
-                            <th class="slds-text-title_caps" scope="col">Title</th>
-                            <th class="slds-text-title_caps" scope="col">Link</th>
-                            <th class="slds-text-title_caps" scope="col">Offline Status</th>
-                            <th class="slds-text-title_caps" scope="col" style="text-align: right;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="video-table-body">
-                        <!-- Video rows will be inserted here by JavaScript -->
-                    </tbody>
-                </table>
+                    <div class="slds-col slds-size_1-of-1 slds-medium-size_8-of-12">
+                        <div class="slds-card slds-card_boundary">
+                            <div class="slds-card__header">
+                                <header class="slds-media slds-media_center slds-has-flexi-truncate">
+                                    <div class="slds-media__figure">
+                                        <span class="slds-icon_container slds-icon-utility-play" title="Video Player">
+                                            <svg class="slds-icon slds-icon_small" aria-hidden="true">
+                                                <use xlink:href="https://www.lightningdesignsystem.com/assets/icons/utility-sprite/svg/symbols.svg#play"></use>
+                                            </svg>
+                                        </span>
+                                    </div>
+                                    <div class="slds-media__body">
+                                        <h2 class="slds-text-heading_small slds-truncate" title="Video Player">Video Player</h2>
+                                    </div>
+                                </header>
+                            </div>
+                            <div class="slds-card__body slds-p-around_small">
+                                <div id="video-player-container" class="video-player-container">
+                                    <video id="video-player" controls class="hidden"></video>
+                                </div>
+                                <div id="message-box" class="slds-notify slds-notify_alert slds-theme_info slds-theme_alert-texture slds-m-top_medium hidden" role="alert">
+                                    <span class="slds-assistive-text">Info</span>
+                                    <span class="slds-icon_container slds-icon-utility-info slds-m-right_x-small">
+                                        <svg class="slds-icon slds-icon_x-small" aria-hidden="true">
+                                            <use xlink:href="https://www.lightningdesignsystem.com/assets/icons/utility-sprite/svg/symbols.svg#info"></use>
+                                        </svg>
+                                    </span>
+                                    <p id="message-text"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- JavaScript for PWA Logic -->
     <script>
-        // --- 1. MOCK VIDEO DATA & STATE MANAGEMENT ---
-        const videoData = [{
-            id: 'video-1',
-            title: 'Introduction to PWAs',
-            url: 'video1.mp4',
-            isOffline: false
-        }, {
-            id: 'video-2',
-            title: 'Service Worker Deep Dive',
-            url: 'video2.mp4',
-            isOffline: false
-        }, {
-            id: 'video-3',
-            title: 'IndexedDB for Fun and Profit',
-            url: 'video3.mp4',
-            isOffline: false
-        }];
+        (function() {
+            // --- 1. MOCK VIDEO DATA & STATE MANAGEMENT ---
+            const videoData = [{
+                id: 'video-1',
+                title: 'Introduction to PWAs',
+                url: 'video1.mp4',
+                isOffline: false
+            }, {
+                id: 'video-2',
+                title: 'Service Worker Deep Dive',
+                url: 'video2.mp4',
+                isOffline: false
+            }, {
+                id: 'video-3',
+                title: 'IndexedDB for Fun and Profit',
+                url: 'video3.mp4',
+                isOffline: false
+            }];
 
-        // --- 2. UI & EVENT HANDLING ---
-        const videoTableBody = document.getElementById('video-table-body');
-        const syncAllBtn = document.getElementById('sync-all-btn');
-        const videoPlayerContainer = document.getElementById('video-player-container');
-        const videoPlayer = document.getElementById('video-player');
-        const messageBox = document.getElementById('message-box');
+            // --- 2. UI & EVENT HANDLING ---
+            const videoList = document.getElementById('video-list');
+            const syncAllBtn = document.getElementById('sync-all-btn');
+            const videoPlayerContainer = document.getElementById('video-player-container');
+            const videoPlayer = document.getElementById('video-player');
+            const messageBox = document.getElementById('message-box');
 
-        const showMessage = (text, type = 'info') => {
-            const messageText = document.getElementById('message-text');
-            messageText.textContent = text;
-            messageBox.classList.remove('hidden', 'slds-theme_success', 'slds-theme_error', 'slds-theme_info');
-            messageBox.classList.add('slds-theme_alert-texture');
+            const showMessage = (text, type = 'info') => {
+                const messageText = document.getElementById('message-text');
+                messageText.textContent = text;
+                messageBox.classList.remove('hidden', 'slds-theme_success', 'slds-theme_error', 'slds-theme_info');
+                messageBox.classList.add('slds-theme_alert-texture');
 
-            if (type === 'success') {
-                messageBox.classList.add('slds-theme_success');
-                messageBox.querySelector('use').setAttribute('xlink:href', 'https://www.lightningdesignsystem.com/assets/icons/utility-sprite/svg/symbols.svg#success');
-            } else if (type === 'error') {
-                messageBox.classList.add('slds-theme_error');
-                messageBox.querySelector('use').setAttribute('xlink:href', 'https://www.lightningdesignsystem.com/assets/icons/utility-sprite/svg/symbols.svg#error');
-            } else {
-                messageBox.classList.add('slds-theme_info');
-                messageBox.querySelector('use').setAttribute('xlink:href', 'https://www.lightningdesignsystem.com/assets/icons/utility-sprite/svg/symbols.svg#info');
-            }
-            setTimeout(() => {
-                messageBox.classList.add('hidden');
-            }, 5000);
-        };
-
-        const renderTable = () => {
-            videoTableBody.innerHTML = '';
-            videoData.forEach(video => {
-                const row = document.createElement('tr');
-                row.className = 'slds-hint-parent';
-                row.innerHTML = `
-                    <td data-label="Title">${video.title}</td>
-                    <td data-label="Link"><a href="#${video.id}" class="slds-text-link" onclick="playVideo('${video.id}')">Watch</a></td>
-                    <td data-label="Offline Status"><span id="${video.id}-status" class="slds-badge slds-theme_default">${video.isOffline ? 'Available Offline' : 'Online Only'}</span></td>
-                    <td data-label="Actions" style="text-align: right;">
-                        <button id="${video.id}-sync-btn" class="slds-button slds-button_neutral sync-btn" data-video-id="${video.id}" ${video.isOffline ? 'disabled' : ''}>
-                            ${video.isOffline ? 'Synced' : 'Sync'}
-                        </button>
-                    </td>
-                `;
-                videoTableBody.appendChild(row);
-            });
-            attachSyncListeners();
-        };
-
-        const attachSyncListeners = () => {
-            document.querySelectorAll('.sync-btn').forEach(btn => {
-                btn.onclick = (e) => {
-                    const videoId = e.target.dataset.videoId;
-                    if (videoId) {
-                        syncVideo(videoId);
-                    }
-                };
-            });
-        };
-
-        const playVideo = async (videoId) => {
-            const video = videoData.find(v => v.id === videoId);
-            if (!video) {
-                showMessage('Video not found.', 'error');
-                return;
-            }
-            videoPlayer.src = video.url;
-            showMessage(`Attempting to play video: ${video.title}. The service worker will handle caching.`, 'info');
-            videoPlayerContainer.classList.remove('hidden');
-            videoPlayer.load();
-        };
-
-        const syncVideo = async (videoId) => {
-            const video = videoData.find(v => v.id === videoId);
-            if (!video) return;
-            const syncBtn = document.getElementById(`${videoId}-sync-btn`);
-            const statusSpan = document.getElementById(`${videoId}-status`);
-            syncBtn.disabled = true;
-            syncBtn.textContent = 'Syncing...';
-            statusSpan.textContent = 'Syncing...';
-            statusSpan.className = 'slds-badge slds-theme_warning';
-
-            try {
-                const response = await fetch(video.url);
-                if (!response.ok) {
-                    throw new Error(`Network response was not ok. Status: ${response.status}`);
+                if (type === 'success') {
+                    messageBox.classList.add('slds-theme_success');
+                    messageBox.querySelector('use').setAttribute('xlink:href', 'https://www.lightningdesignsystem.com/assets/icons/utility-sprite/svg/symbols.svg#success');
+                } else if (type === 'error') {
+                    messageBox.classList.add('slds-theme_error');
+                    messageBox.querySelector('use').setAttribute('xlink:href', 'https://www.lightningdesignsystem.com/assets/icons/utility-sprite/svg/symbols.svg#error');
+                } else {
+                    messageBox.classList.add('slds-theme_info');
+                    messageBox.querySelector('use').setAttribute('xlink:href', 'https://www.lightningdesignsystem.com/assets/icons/utility-sprite/svg/symbols.svg#info');
                 }
-                video.isOffline = true;
-                syncBtn.disabled = true;
-                syncBtn.textContent = 'Synced';
-                statusSpan.textContent = 'Available Offline';
-                statusSpan.className = 'slds-badge slds-theme_success';
-                showMessage(`Video '${video.title}' synced successfully!`, 'success');
-            } catch (error) {
-                console.error(`Failed to sync video: ${video.title}`, error);
-                showMessage(`Failed to sync video '${video.title}'. The video file was not found or could not be accessed. Please ensure the file exists at: ${video.url}`, 'error');
-                video.isOffline = false;
-                syncBtn.disabled = false;
-                syncBtn.textContent = 'Sync';
-                statusSpan.textContent = 'Online Only';
-                statusSpan.className = 'slds-badge slds-theme_default';
-            }
-        };
+                setTimeout(() => {
+                    messageBox.classList.add('hidden');
+                }, 5000);
+            };
 
-        const syncAllVideos = async () => {
-            showMessage('Initiated sync for all videos.', 'info');
-            for (const video of videoData) {
-                if (!video.isOffline) {
-                    await syncVideo(video.id);
-                }
-            }
-        };
-        
-        const handleDeepLink = () => {
-            const videoId = window.location.hash.slice(1);
-            if (videoId) {
-                playVideo(videoId);
-            }
-        };
-
-        const DB_NAME = 'offline-videos-db';
-        const DB_VERSION = 1;
-        const DB_STORE_NAME = 'videos';
-        let db;
-
-        const openDatabase = () => {
-            return new Promise((resolve, reject) => {
-                const request = indexedDB.open(DB_NAME, DB_VERSION);
-                request.onupgradeneeded = (event) => {
-                    const db = event.target.result;
-                    if (!db.objectStoreNames.contains(DB_STORE_NAME)) {
-                        db.createObjectStore(DB_STORE_NAME, { keyPath: 'id' });
-                    }
-                };
-                request.onsuccess = (event) => {
-                    resolve(event.target.result);
-                };
-                request.onerror = (event) => {
-                    console.error('IndexedDB error:', event.target.error);
-                    reject(event.target.error);
-                };
-            });
-        };
-
-        const checkOfflineStatus = async () => {
-            const db = await openDatabase();
-            const transaction = db.transaction([DB_STORE_NAME], 'readonly');
-            const store = transaction.objectStore(DB_STORE_NAME);
-            const syncedVideoUrls = await new Promise((resolve, reject) => {
-                const request = store.getAllKeys();
-                request.onsuccess = () => resolve(request.result);
-                request.onerror = () => reject([]);
-            });
-
-            videoData.forEach(video => {
-                video.isOffline = syncedVideoUrls.includes(video.url);
-            });
-            renderTable();
-        };
-
-        const initializeApp = async () => {
-            try {
-                db = await openDatabase();
-                await checkOfflineStatus();
-                renderTable();
-                handleDeepLink();
-                syncAllBtn.onclick = syncAllVideos;
-            } catch (error) {
-                console.error('App initialization failed:', error);
-                showMessage('App failed to load. Check console for details.', 'error');
-            }
-        };
-
-        window.addEventListener('load', () => {
-            console.log("App load event fired.");
-            if ('serviceWorker' in navigator && window.location.protocol !== 'blob:') {
-                navigator.serviceWorker.register('service-worker.js')
-                .then(registration => {
-                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                    initializeApp();
-                })
-                .catch(err => {
-                    console.error('ServiceWorker registration failed: ', err);
-                    showMessage('App failed to load. Check console for details.', 'error');
-                    initializeApp(); // Run initialization anyway for a fallback UI
+            const renderVideoList = () => {
+                videoList.innerHTML = '';
+                videoData.forEach(video => {
+                    const li = document.createElement('li');
+                    li.className = 'slds-item video-list-item';
+                    li.innerHTML = `
+                        <a href="#${video.id}" class="slds-box slds-box_link slds-p-around_small video-list-item-link" onclick="playVideo('${video.id}')">
+                            <div class="slds-media">
+                                <div class="slds-media__figure">
+                                    <span class="slds-icon_container slds-icon-utility-video">
+                                        <svg class="slds-icon slds-icon_medium" aria-hidden="true">
+                                            <use xlink:href="https://www.lightningdesignsystem.com/assets/icons/utility-sprite/svg/symbols.svg#video"></use>
+                                        </svg>
+                                    </span>
+                                </div>
+                                <div class="slds-media__body">
+                                    <p class="slds-text-heading_small">${video.title}</p>
+                                    <p class="slds-text-body_small">
+                                        <span id="${video.id}-status" class="slds-badge ${video.isOffline ? 'slds-theme_success' : 'slds-theme_default'}">${video.isOffline ? 'Available Offline' : 'Online Only'}</span>
+                                    </p>
+                                </div>
+                                <div class="slds-media__figure slds-media__figure_reverse">
+                                    <button id="${video.id}-sync-btn" class="slds-button slds-button_icon slds-button_icon-border sync-btn" data-video-id="${video.id}" ${video.isOffline ? 'disabled' : ''}>
+                                        <svg class="slds-button__icon" aria-hidden="true">
+                                            <use xlink:href="https://www.lightningdesignsystem.com/assets/icons/utility-sprite/svg/symbols.svg#download"></use>
+                                        </svg>
+                                        <span class="slds-assistive-text">Sync</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </a>
+                    `;
+                    videoList.appendChild(li);
                 });
-            } else {
-                console.warn('Service workers are not supported or available in this browser. PWA features will not be available.');
-                initializeApp(); // Run initialization without service worker support
-            }
-        });
-        window.addEventListener('hashchange', handleDeepLink);
+                attachSyncListeners();
+            };
+
+            const attachSyncListeners = () => {
+                document.querySelectorAll('.sync-btn').forEach(btn => {
+                    btn.onclick = (e) => {
+                        e.stopPropagation(); // Prevent the parent link from being clicked
+                        const videoId = e.currentTarget.dataset.videoId;
+                        if (videoId) {
+                            syncVideo(videoId);
+                        }
+                    };
+                });
+            };
+
+            const playVideo = async (videoId) => {
+                const video = videoData.find(v => v.id === videoId);
+                if (!video) {
+                    showMessage('Video not found.', 'error');
+                    return;
+                }
+                videoPlayer.src = video.url;
+                videoPlayer.classList.remove('hidden');
+                showMessage(`Attempting to play video: ${video.title}. The service worker will handle caching.`, 'info');
+                videoPlayer.load();
+            };
+
+            const syncVideo = async (videoId) => {
+                const video = videoData.find(v => v.id === videoId);
+                if (!video) return;
+                const syncBtn = document.getElementById(`${videoId}-sync-btn`);
+                const statusSpan = document.getElementById(`${videoId}-status`);
+                syncBtn.disabled = true;
+                syncBtn.textContent = '';
+                statusSpan.textContent = 'Syncing...';
+                statusSpan.className = 'slds-badge slds-theme_warning';
+
+                try {
+                    const response = await fetch(video.url);
+                    if (!response.ok) {
+                        throw new Error(`Network response was not ok. Status: ${response.status}`);
+                    }
+                    video.isOffline = true;
+                    syncBtn.disabled = true;
+                    syncBtn.textContent = '';
+                    statusSpan.textContent = 'Available Offline';
+                    statusSpan.className = 'slds-badge slds-theme_success';
+                    showMessage(`Video '${video.title}' synced successfully!`, 'success');
+                    renderVideoList(); // Re-render to update the button icon
+                } catch (error) {
+                    console.error(`Failed to sync video: ${video.title}`, error);
+                    showMessage(`Failed to sync video '${video.title}'. The video file was not found or could not be accessed. Please ensure the file exists at: ${video.url}`, 'error');
+                    video.isOffline = false;
+                    syncBtn.disabled = false;
+                    syncBtn.textContent = 'Sync';
+                    statusSpan.textContent = 'Online Only';
+                    statusSpan.className = 'slds-badge slds-theme_default';
+                }
+            };
+
+            const syncAllVideos = async () => {
+                showMessage('Initiated sync for all videos.', 'info');
+                for (const video of videoData) {
+                    if (!video.isOffline) {
+                        await syncVideo(video.id);
+                    }
+                }
+            };
+            
+            const handleDeepLink = () => {
+                const videoId = window.location.hash.slice(1);
+                if (videoId) {
+                    playVideo(videoId);
+                }
+            };
+
+            // --- 3. INDEXEDDB SETUP ---
+            const DB_NAME = 'offline-videos-db';
+            const DB_VERSION = 1;
+            const DB_STORE_NAME = 'videos';
+            let db;
+
+            const openDatabase = () => {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open(DB_NAME, DB_VERSION);
+                    request.onupgradeneeded = (event) => {
+                        const db = event.target.result;
+                        if (!db.objectStoreNames.contains(DB_STORE_NAME)) {
+                            db.createObjectStore(DB_STORE_NAME, { keyPath: 'id' });
+                        }
+                    };
+                    request.onsuccess = (event) => {
+                        resolve(event.target.result);
+                    };
+                    request.onerror = (event) => {
+                        console.error('IndexedDB error:', event.target.error);
+                        reject(event.target.error);
+                    };
+                });
+            };
+
+            const checkOfflineStatus = async () => {
+                const db = await openDatabase();
+                const transaction = db.transaction([DB_STORE_NAME], 'readonly');
+                const store = transaction.objectStore(DB_STORE_NAME);
+                const syncedVideoUrls = await new Promise((resolve, reject) => {
+                    const request = store.getAllKeys();
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject([]);
+                });
+
+                videoData.forEach(video => {
+                    video.isOffline = syncedVideoUrls.includes(video.url);
+                });
+                renderVideoList();
+            };
+
+            const initializeApp = async () => {
+                try {
+                    db = await openDatabase();
+                    await checkOfflineStatus();
+                    renderVideoList();
+                    handleDeepLink();
+                    syncAllBtn.onclick = syncAllVideos;
+                } catch (error) {
+                    console.error('App initialization failed:', error);
+                    showMessage('App failed to load. Check console for details.', 'error');
+                }
+            };
+
+            window.addEventListener('load', () => {
+                console.log("App load event fired.");
+                if ('serviceWorker' in navigator && window.location.protocol !== 'blob:') {
+                    navigator.serviceWorker.register('service-worker.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                        initializeApp();
+                    })
+                    .catch(err => {
+                        console.error('ServiceWorker registration failed: ', err);
+                        showMessage('App failed to load. Check console for details.', 'error');
+                        initializeApp(); // Run initialization anyway for a fallback UI
+                    });
+                } else {
+                    console.warn('Service workers are not supported or available in this browser. PWA features will not be available.');
+                    initializeApp(); // Run initialization without service worker support
+                }
+            });
+            window.addEventListener('hashchange', handleDeepLink);
+        })();
     </script>
 </body>
 </html>
