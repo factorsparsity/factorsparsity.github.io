@@ -38,12 +38,26 @@
 <body class="slds-p-around_medium slds-m-top_large">
 
     <div class="slds-card slds-p-around_large slds-max-small-size--1-of-1 slds-m-bottom_medium" style="max-width: 60rem; margin: auto;">
-        <div class="slds-card__header slds-grid slds-p-bottom_medium">
-            <h1 class="slds-text-heading_large slds-text-color_success">Offline Video Sync PWA</h1>
+        <div class="slds-card__header slds-grid slds-p-bottom_medium slds-p-horizontal_none">
+            <header class="slds-media slds-media_center slds-has-flexi-truncate">
+                <div class="slds-media__figure">
+                    <span class="slds-icon_container slds-icon-standard-live-agent slds-m-right_x-small" title="PWA Video Player">
+                        <svg class="slds-icon" aria-hidden="true">
+                            <use xlink:href="https://www.lightningdesignsystem.com/assets/icons/standard-sprite/svg/symbols.svg#live_agent"></use>
+                        </svg>
+                        <span class="slds-assistive-text">PWA Video Player</span>
+                    </span>
+                </div>
+                <div class="slds-media__body">
+                    <h2 class="slds-card__header-title">
+                        <span class="slds-text-heading_large slds-text-color_default">Offline Video Sync PWA</span>
+                    </h2>
+                </div>
+            </header>
         </div>
         
         <!-- Status Message Box -->
-        <div id="message-box" class="slds-notify slds-notify_alert slds-theme_alert-texture hidden" role="alert">
+        <div id="message-box" class="slds-notify slds-notify_alert slds-theme_info slds-theme_alert-texture slds-m-bottom_medium hidden" role="alert">
             <span class="slds-assistive-text">Info</span>
             <span class="slds-icon_container slds-icon-utility-info slds-m-right_x-small">
                 <svg class="slds-icon slds-icon_x-small" aria-hidden="true">
@@ -53,39 +67,42 @@
             <p id="message-text"></p>
         </div>
 
-        <!-- Video Player Section -->
-        <div id="video-player-container" class="slds-p-around_medium hidden">
-            <video id="video-player" controls class="slds-p-around_x-small" style="width: 100%;"></video>
-        </div>
+        <div class="slds-card__body slds-p-vertical_small slds-p-horizontal_none">
 
-        <!-- Main Video List Section -->
-        <div class="slds-grid slds-grid_vertical-align-center slds-m-vertical_medium">
-            <h2 class="slds-text-heading_medium slds-m-right_large">Video List</h2>
-            <div class="slds-button_group" role="group">
-                <button id="sync-all-btn" class="slds-button slds-button_brand">
-                    <svg class="slds-button__icon slds-button__icon_left" aria-hidden="true">
-                        <use xlink:href="https://www.lightningdesignsystem.com/assets/icons/utility-sprite/svg/symbols.svg#sync"></use>
-                    </svg>
-                    Sync All Videos
-                </button>
+            <!-- Video Player Section -->
+            <div id="video-player-container" class="slds-m-bottom_medium hidden">
+                <video id="video-player" controls style="width: 100%; border-radius: var(--lwc-borderRadiusMedium, .25rem);"></video>
             </div>
-        </div>
 
-        <!-- Video Table -->
-        <div class="slds-table_edit">
-            <table class="slds-table slds-table_bordered slds-table_cell-buffer">
-                <thead>
-                    <tr class="slds-line-height_reset">
-                        <th class="slds-text-title_caps" scope="col">Title</th>
-                        <th class="slds-text-title_caps" scope="col">Link</th>
-                        <th class="slds-text-title_caps" scope="col">Offline Status</th>
-                        <th class="slds-text-title_caps" scope="col" style="text-align: right;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="video-table-body">
-                    <!-- Video rows will be inserted here by JavaScript -->
-                </tbody>
-            </table>
+            <!-- Main Video List Section -->
+            <div class="slds-grid slds-grid_vertical-align-center slds-m-bottom_medium">
+                <div class="slds-text-heading_medium slds-m-right_large slds-col_bump-right">Video List</div>
+                <div class="slds-button_group" role="group">
+                    <button id="sync-all-btn" class="slds-button slds-button_brand">
+                        <svg class="slds-button__icon slds-button__icon_left" aria-hidden="true">
+                            <use xlink:href="https://www.lightningdesignsystem.com/assets/icons/utility-sprite/svg/symbols.svg#sync"></use>
+                        </svg>
+                        Sync All Videos
+                    </button>
+                </div>
+            </div>
+
+            <!-- Video Table -->
+            <div class="slds-table_edit">
+                <table class="slds-table slds-table_bordered slds-table_cell-buffer slds-table_fixed-layout">
+                    <thead>
+                        <tr class="slds-line-height_reset">
+                            <th class="slds-text-title_caps" scope="col">Title</th>
+                            <th class="slds-text-title_caps" scope="col">Link</th>
+                            <th class="slds-text-title_caps" scope="col">Offline Status</th>
+                            <th class="slds-text-title_caps" scope="col" style="text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="video-table-body">
+                        <!-- Video rows will be inserted here by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
