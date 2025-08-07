@@ -1,0 +1,17 @@
+{
+    "name": "Offline Video Player",
+    "short_name": "Video PWA",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#4f46e5",
+    "icons": [{
+        "src": "https://placehold.co/192x192/4f46e5/ffffff?text=Video",
+        "sizes": "192x192",
+        "type": "image/png"
+    }, {
+        "src": "https://placehold.co/512x512/4f46e5/ffffff?text=Video",
+        "sizes": "512x512",
+        "type": "image/png"
+    }]
+}

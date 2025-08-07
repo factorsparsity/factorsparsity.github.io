@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline Video Player PWA</title>
+    <!-- Link to the external manifest file -->
+    <link rel="manifest" href="manifest.json">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #e5e7eb;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #9ca3af;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 flex flex-col items-center">
+
+    <div class="max-w-4xl w-full bg-white p-6 md:p-8 rounded-lg shadow-xl">
+        <h1 class="text-3xl font-extrabold text-gray-800 text-center mb-6">Offline Video Sync PWA</h1>
+        
+        <!-- Status Message Box -->
+        <div id="message-box" class="hidden mb-4 p-4 text-center text-sm font-medium rounded-lg transition-all duration-300"></div>
+
+        <!-- Video Player Section -->
+        <div id="video-player-container" class="w-full flex justify-center mb-6 hidden">
+            <video id="video-player" controls class="w-full rounded-lg shadow-md max-w-2xl"></video>
+        </div>
+
+        <!-- Main Video List Section -->
+        <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+            <h2 class="text-xl font-bold text-gray-700">Video List</h2>
+            <button id="sync-all-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-full shadow-lg transition-transform duration-200 transform hover:scale-105">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-2 -mt-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0113 2.801v2.098A7.002 7.002 0 015 15.9V18a1 1 0 11-2 0v-2.101A7.002 7.002 0 011 8.9v-2.098A7.002 7.002 0 014 2zm10 4a1 1 0 100 2 1 1 0 000-2zm-4 4a1 1 0 100 2 1 1 0 000-2zm-4 4a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd" />
+                </svg>
+                Sync All Videos
+            </button>
+        </div>
+
+        <!-- Video Table -->
+        <div class="overflow-x-auto rounded-lg shadow-inner">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Link</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Offline Status</th>
+                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="video-table-body" class="bg-white divide-y divide-gray-200">
+                    <!-- Video rows will be inserted here by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- JavaScript for PWA Logic -->
+    <script>
+        // --- 1. MOCK VIDEO DATA & STATE MANAGEMENT ---
+        // Video URLs changed to local paths to avoid CORS issues
+        const videoData = [{
+            id: 'video-1',
+            title: 'Introduction to PWAs',
+            url: 'video1.mp4',
+            isOffline: false
+        }, {
+            id: 'video-2',
+            title: 'Service Worker Deep Dive',
+            url: 'video2.mp4',
+            isOffline: false
+        }, {
+            id: 'video-3',
+            title: 'IndexedDB for Fun and Profit',
+            url: 'video3.mp4',
+            isOffline: false
+        }];
+
+        // --- 2. UI & EVENT HANDLING ---
+        const videoTableBody = document.getElementById('video-table-body');
+        const syncAllBtn = document.getElementById('sync-all-btn');
+        const videoPlayerContainer = document.getElementById('video-player-container');
+        const videoPlayer = document.getElementById('video-player');
+        const messageBox = document.getElementById('message-box');
+
+        const showMessage = (text, type = 'info') => {
+            messageBox.textContent = text;
+            messageBox.className = `block mb-4 p-4 text-center text-sm font-medium rounded-lg transition-all duration-300`;
+            if (type === 'success') {
+                messageBox.classList.add('bg-green-100', 'text-green-800');
+            } else if (type === 'error') {
+                messageBox.classList.add('bg-red-100', 'text-red-800');
+            } else {
+                messageBox.classList.add('bg-blue-100', 'text-blue-800');
+            }
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+            }, 5000);
+        };
+
+        const renderTable = () => {
+            videoTableBody.innerHTML = '';
+            videoData.forEach(video => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 transition-colors';
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${video.title}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <a href="#${video.id}" class="text-indigo-600 hover:text-indigo-900" onclick="playVideo('${video.id}')">Watch</a>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <span id="${video.id}-status" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${video.isOffline ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
+                            ${video.isOffline ? 'Available Offline' : 'Online Only'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button id="${video.id}-sync-btn" class="sync-btn text-indigo-600 hover:text-indigo-900 font-bold disabled:text-gray-400 disabled:cursor-not-allowed transition-colors" data-video-id="${video.id}" ${video.isOffline ? 'disabled' : ''}>
+                            ${video.isOffline ? 'Synced' : 'Sync'}
+                        </button>
+                    </td>
+                `;
+                videoTableBody.appendChild(row);
+            });
+            attachSyncListeners();
+        };
+
+        const attachSyncListeners = () => {
+            document.querySelectorAll('.sync-btn').forEach(btn => {
+                btn.onclick = (e) => {
+                    const videoId = e.target.dataset.videoId;
+                    if (videoId) {
+                        syncVideo(videoId);
+                    }
+                };
+            });
+        };
+
+        const playVideo = async (videoId) => {
+            const video = videoData.find(v => v.id === videoId);
+            if (!video) {
+                showMessage('Video not found.', 'error');
+                return;
+            }
+            videoPlayer.src = video.url;
+            showMessage(`Attempting to play video: ${video.title}. The service worker will handle caching.`, 'info');
+            videoPlayerContainer.classList.remove('hidden');
+            videoPlayer.load();
+        };
+
+        const syncVideo = async (videoId) => {
+            const video = videoData.find(v => v.id === videoId);
+            if (!video) return;
+            const syncBtn = document.getElementById(`${videoId}-sync-btn`);
+            const statusSpan = document.getElementById(`${videoId}-status`);
+            syncBtn.disabled = true;
+            syncBtn.textContent = 'Syncing...';
+            statusSpan.textContent = 'Syncing...';
+            statusSpan.className = 'px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800';
+
+            // Now, we just perform a fetch. The service worker's 'fetch' listener will handle the caching.
+            try {
+                const response = await fetch(video.url);
+                if (!response.ok) {
+                    throw new Error(`Network response was not ok. Status: ${response.status}`);
+                }
+                // Once the fetch is successful, the video is considered synced
+                video.isOffline = true;
+                syncBtn.disabled = true;
+                syncBtn.textContent = 'Synced';
+                statusSpan.textContent = 'Available Offline';
+                statusSpan.className = 'px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800';
+                showMessage(`Video '${video.title}' synced successfully!`, 'success');
+            } catch (error) {
+                console.error(`Failed to sync video: ${video.title}`, error);
+                showMessage(`Failed to sync video '${video.title}'. The video file was not found or could not be accessed. Please ensure the file exists at: ${video.url}`, 'error');
+                video.isOffline = false;
+                syncBtn.disabled = false;
+                syncBtn.textContent = 'Sync';
+                statusSpan.textContent = 'Online Only';
+                statusSpan.className = 'px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800';
+            }
+        };
+
+        const syncAllVideos = async () => {
+            showMessage('Initiated sync for all videos.', 'info');
+            // Use a for...of loop to correctly await each sync operation
+            for (const video of videoData) {
+                if (!video.isOffline) {
+                    await syncVideo(video.id);
+                }
+            }
+        };
+        
+        const handleDeepLink = () => {
+            const videoId = window.location.hash.slice(1);
+            if (videoId) {
+                playVideo(videoId);
+            }
+        };
+
+        // --- 3. INDEXEDDB SETUP ---
+        const DB_NAME = 'offline-videos-db';
+        const DB_VERSION = 1;
+        const DB_STORE_NAME = 'videos';
+        let db;
+
+        const openDatabase = () => {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains(DB_STORE_NAME)) {
+                        db.createObjectStore(DB_STORE_NAME, { keyPath: 'id' });
+                    }
+                };
+                request.onsuccess = (event) => {
+                    resolve(event.target.result);
+                };
+                request.onerror = (event) => {
+                    console.error('IndexedDB error:', event.target.error);
+                    reject(event.target.error);
+                };
+            });
+        };
+
+        const checkOfflineStatus = async () => {
+            const db = await openDatabase();
+            const transaction = db.transaction([DB_STORE_NAME], 'readonly');
+            const store = transaction.objectStore(DB_STORE_NAME);
+            const syncedVideoUrls = await new Promise((resolve, reject) => {
+                const request = store.getAllKeys();
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject([]);
+            });
+
+            videoData.forEach(video => {
+                video.isOffline = syncedVideoUrls.includes(video.url);
+            });
+            renderTable();
+        };
+
+        // --- 4. APP INITIALIZATION ---
+        const initializeApp = async () => {
+            try {
+                // Ensure IndexedDB is ready before checking status
+                db = await openDatabase();
+                await checkOfflineStatus();
+                renderTable();
+                handleDeepLink();
+                syncAllBtn.onclick = syncAllVideos;
+            } catch (error) {
+                console.error('App initialization failed:', error);
+                showMessage('App failed to load. Check console for details.', 'error');
+            }
+        };
+
+        window.addEventListener('load', () => {
+            console.log("App load event fired.");
+            if ('serviceWorker' in navigator && window.location.protocol !== 'blob:') {
+                navigator.serviceWorker.register('service-worker.js')
+                .then(registration => {
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    initializeApp();
+                })
+                .catch(err => {
+                    console.error('ServiceWorker registration failed: ', err);
+                    showMessage('App failed to load. Check console for details.', 'error');
+                    initializeApp(); // Run initialization anyway for a fallback UI
+                });
+            } else {
+                console.warn('Service workers are not supported or available in this browser. PWA features will not be available.');
+                initializeApp(); // Run initialization without service worker support
+            }
+        });
+        window.addEventListener('hashchange', handleDeepLink);
+    </script>
+</body>
+</html>
