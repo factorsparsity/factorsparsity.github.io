@@ -5,8 +5,8 @@ const APP_SHELL = [
   '/manifest.json',
   '/sw.js',
   // Fonts
-  '/fonts/chicago.woff2',
-  '/fonts/courier-prime.woff2',
+  '/chicago.woff2',
+  '/courier-prime.woff2',
   // External libs cached for offline
   'https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js',
   'https://cdn.jsdelivr.net/npm/idb-keyval@6/dist/idb-keyval.iife.min.js'
