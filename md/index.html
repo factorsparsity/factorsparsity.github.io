@@ -1,149 +1,14 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>System-1 Markdown — Minimal MacWrite PWA</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ffffff">
+<title>System-1 Markdown</title>
+
 <style>
-/* ========================
-   System 1 monochrome UI
-   ======================== */
-:root {
-  --bg: #fff;
-  --fg: #000;
-  --menubar-h: 28px;
-  --font-default: "Chicago", "Monaco", monospace;
-  --font-alt: "Courier Prime", monospace;
-}
-
-/* dark mode inverts black/white */
-body.dark { --bg: #000; --fg: #fff; }
-
-html,body { height:100%; margin:0; background:var(--bg); color:var(--fg); font-family:var(--font-default); -webkit-font-smoothing: none; image-rendering: pixelated; }
-
-/* small 1-bit dither patterns (black/white only) */
-.pattern {
-  background-image:
-    linear-gradient(45deg, var(--fg) 25%, var(--bg) 25%, var(--bg) 50%, var(--fg) 50%, var(--fg) 75%, var(--bg) 75%, var(--bg) 100%);
-  background-size: 4px 4px;
-}
-
-/* Menubar */
-#menubar {
-  height: var(--menubar-h);
-  line-height: var(--menubar-h);
-  border-bottom: 1px solid var(--fg);
-  background: var(--bg); /* System 1 menubar is white (or inverted in dark mode) */
-  color: var(--fg);
-  display:flex;
-  align-items:center;
-  padding:0 6px;
-  gap:8px;
-  user-select:none;
-  font-size:13px;
-  box-sizing:border-box;
-}
-
-/* left area for menus, right area for status */
-#menu-left { display:flex; gap:8px; align-items:center; }
-#menu-right { margin-left:auto; display:flex; gap:12px; align-items:center; font-size:12px; padding-right:6px; }
-
-/* each top-level menu */
-.menu {
-  position:relative;
-  padding:0 6px;
-  height:var(--menubar-h);
-  display:inline-flex;
-  align-items:center;
-  cursor:default;
-  white-space:nowrap;
-}
-
-/* dropdown */
-.dropdown {
-  position:absolute;
-  top:calc(var(--menubar-h) + 2px);
-  left:0;
-  border:1px solid var(--fg);
-  background:var(--bg);
-  color:var(--fg);
-  display:none;
-  flex-direction:column;
-  min-width:max-content;        /* ensure single-line items */
-  z-index:50;
-  box-sizing:border-box;
-}
-
-/* show when .open added */
-.menu.open > .dropdown { display:flex; }
-
-/* dropdown items: single line only */
-.dd-item {
-  padding:6px 10px;
-  white-space:nowrap;          /* crucial: never wrap */
-  cursor:default;
-  border-bottom:1px dotted var(--fg);
-  font-family:var(--font-default);
-}
-
-/* last child no border */
-.dd-item:last-child { border-bottom:none; }
-
-/* hover effect (1-bit dither for highlight) */
-.dd-item:hover {
-  background-image: linear-gradient(90deg, var(--fg) 25%, var(--bg) 25%, var(--bg) 50%, var(--fg) 50%);
-  background-size: 4px 4px;
-  color: var(--bg);
-}
-
-/* editor / preview full area */
-#editor, #preview {
-  box-sizing:border-box;
-  width:100%;
-  height: calc(100vh - var(--menubar-h));
-  border:none;
-  margin:0;
-  padding:18px;
-  font-size:16px;
-  line-height:1.25;
-  background:var(--bg);
-  color:var(--fg);
-  resize:none;
-  outline:none;
-  -webkit-appearance:none;
-  font-family:var(--font-default);
-}
-
-/* monospace code look */
-code, pre { font-family: var(--font-alt); }
-
-/* Preview rendering: keep only black/white */
-#preview { display:none; overflow:auto; word-wrap:break-word; }
-
-/* visible class toggles */
-.visible { display:block !important; }
-
-/* small status text */
-#status { font-size:12px; color:var(--fg); opacity:0.9; }
-
-/* ensure menus fit on small screens: make dropdown scrollable vertically if tall */
-.dropdown { max-height: calc(100vh - 60px); overflow:auto; }
-
-/* accessibility focus */
-.menu:focus { outline:1px dashed var(--fg); }
-
-/* hide native scrollbars for a cleaner System-1 look (still scrollable) */
-.dropdown::-webkit-scrollbar, #preview::-webkit-scrollbar { width:8px; height:8px; background:var(--bg); }
-.dropdown::-webkit-scrollbar-thumb, #preview::-webkit-scrollbar-thumb { background:var(--fg); }
-
-/* Small separator used inside dropdowns */
-.sep { height:6px; }
-
-/* force sharp pixel rendering on retina as best effort */
-* { image-rendering: pixelated; -webkit-font-smoothing: none; }
-</style>
-
+/* === Embedded Local Font References === */
 @font-face {
   font-family: 'Courier Prime Local';
   src: url('./courier-prime.woff2') format('woff2');
@@ -159,502 +24,277 @@ code, pre { font-family: var(--font-alt); }
   font-display: swap;
 }
 
-/* then use these in your existing CSS variables */
 :root {
   --font-default: 'Chicago Local', 'Chicago', 'Monaco', monospace;
   --font-alt: 'Courier Prime Local', 'Courier Prime', monospace;
+  --bg-light: #ffffff;
+  --bg-dark: #000000;
+  --fg-light: #000000;
+  --fg-dark: #ffffff;
 }
 
-   
+body {
+  margin: 0;
+  font-family: var(--font-default);
+  background-color: var(--bg-light);
+  color: var(--fg-light);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* === Menu Bar === */
+#menubar {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  color: black;
+  border-bottom: 1px solid #000;
+  padding: 0 8px;
+  font-size: 14px;
+  user-select: none;
+}
+
+.menu {
+  position: relative;
+  padding: 4px 8px;
+  cursor: default;
+}
+
+.menu:hover {
+  background: #000;
+  color: #fff;
+}
+
+.dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: #fff;
+  color: black;
+  border: 1px solid #000;
+  min-width: 160px;
+  white-space: nowrap;
+}
+
+.menu:hover .dropdown {
+  display: block;
+}
+
+.dropdown div {
+  padding: 4px 8px;
+}
+
+.dropdown div:hover {
+  background: #000;
+  color: #fff;
+}
+
+#status {
+  margin-left: auto;
+  font-size: 12px;
+  padding-left: 8px;
+}
+
+/* === Editor === */
+#editor {
+  flex: 1;
+  padding: 8px;
+  font-family: var(--font-alt);
+  font-size: 14px;
+  line-height: 1.4;
+  outline: none;
+  border: none;
+  resize: none;
+  background: transparent;
+  color: inherit;
+}
+
+.dark {
+  background-color: var(--bg-dark);
+  color: var(--fg-dark);
+}
+</style>
 </head>
 <body>
-  <!-- Menubar -->
-  <div id="menubar">
-    <div id="menu-left">
-      <div style="padding-right:6px; font-weight:bold;"></div> <!-- not required, just nod to System 1 -->
-      <div class="menu" data-menu="File" tabindex="0">File
-        <div class="dropdown" data-menu-list="File">
-          <div class="dd-item" data-action="file-new">New ⌘N</div>
-          <div class="dd-item" data-action="file-open">Open ⌘O</div>
-          <div class="dd-item" data-action="file-save">Save ⌘S</div>
-          <div class="dd-item sep" style="border-bottom:none;"></div>
-          <!-- dynamic file list goes here -->
-          <div id="file-list-placeholder" class="dd-item" style="font-style:italic;color:gray;">(No saved files)</div>
-        </div>
-      </div>
 
-      <div class="menu" data-menu="Edit" tabindex="0">Edit
-        <div class="dropdown" data-menu-list="Edit">
-          <div class="dd-item" data-action="edit-undo">Undo ⌘Z</div>
-          <div class="dd-item" data-action="edit-redo">Redo ⇧⌘Z</div>
-          <div class="dd-item" data-action="edit-copy">Copy ⌘C</div>
-          <div class="dd-item" data-action="edit-paste">Paste ⌘V</div>
-        </div>
-      </div>
-
-      <div class="menu" data-menu="Format" tabindex="0">Format
-        <div class="dropdown" data-menu-list="Format">
-          <div class="dd-item" data-action="fmt-bold">Bold ⌘B</div>
-          <div class="dd-item" data-action="fmt-italic">Italic ⌘I</div>
-          <div class="dd-item" data-action="fmt-bullets">Bullets ⇧⌘8</div>
-          <div class="dd-item" data-action="fmt-h1">H1 ⇧⌘1</div>
-          <div class="dd-item" data-action="fmt-h2">H2 ⇧⌘2</div>
-          <div class="dd-item" data-action="fmt-link">Link ⌘K</div>
-        </div>
-      </div>
-
-      <div class="menu" data-menu="View" tabindex="0">View
-        <div class="dropdown" data-menu-list="View">
-          <div class="dd-item" data-action="view-togglePreview">Toggle Preview ⇧⌘P</div>
-          <div class="dd-item" data-action="view-toggleDark">Toggle Dark ⇧⌘D</div>
-          <div class="dd-item" data-action="view-toggleFont">Toggle Font ⇧⌘F</div>
-        </div>
-      </div>
-    </div>
-
-    <div id="menu-right">
-      <div id="status">Saved</div>
+<div id="menubar">
+  <div class="menu">File
+    <div class="dropdown">
+      <div data-action="new">New ⌘N</div>
+      <div data-action="open">Open ⌘O</div>
+      <div data-action="save">Save ⌘S</div>
     </div>
   </div>
+  <div class="menu">Edit
+    <div class="dropdown">
+      <div data-action="undo">Undo ⌘Z</div>
+      <div data-action="redo">Redo ⇧⌘Z</div>
+      <div data-action="copy">Copy ⌘C</div>
+      <div data-action="paste">Paste ⌘V</div>
+    </div>
+  </div>
+  <div class="menu">Markdown
+    <div class="dropdown">
+      <div data-action="bold">Bold ⌘B</div>
+      <div data-action="italic">Italic ⌘I</div>
+      <div data-action="bullets">Bullets ⌘U</div>
+      <div data-action="h1">H1</div>
+      <div data-action="h2">H2</div>
+      <div data-action="link">Link ⌘K</div>
+    </div>
+  </div>
+  <div class="menu">View
+    <div class="dropdown">
+      <div data-action="toggle-theme">Toggle Dark/Light</div>
+      <div data-action="preview">Preview</div>
+      <div data-action="toggle-font">Toggle Font</div>
+    </div>
+  </div>
+  <div id="status">Loaded</div>
+</div>
 
-  <!-- Editor / Preview (only these; no toolbar/ruler) -->
-  <textarea id="editor" class="visible" placeholder="Write Markdown..."></textarea>
-  <div id="preview"></div>
+<textarea id="editor" spellcheck="false"></textarea>
 
 <script>
-/* =========================
-   Core JS: menus, editor,
-   markdown, storage, autosave
-   ========================= */
-
-/* ---------- Helpers ---------- */
-const isMac = navigator.platform.toUpperCase().indexOf('MAC')>=0;
-const MOD = isMac ? 'metaKey' : 'ctrlKey'; // prefer meta on Mac, ctrl elsewhere
-
-function $(sel, root=document) { return root.querySelector(sel); }
-function $all(sel, root=document) { return Array.from(root.querySelectorAll(sel)); }
-
-/* ---------- Menu behavior ----------
-   click or keyboard opens menu; ensures dropdown items never wrap.
-*/
-$all('.menu').forEach(menu => {
-  menu.addEventListener('click', (e) => {
-    e.stopPropagation();
-    closeAllMenus(menu);
-    menu.classList.toggle('open');
-    refreshFileListInMenu(); // ensure file list fresh for File menu
-  });
-  menu.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); menu.click(); }
-  });
-});
-
-// close menus when clicking outside
-document.addEventListener('click', (e) => closeAllMenus());
-
-function closeAllMenus(exclude=null) {
-  $all('.menu').forEach(m => { if(m!==exclude) m.classList.remove('open'); });
+// === Service Worker Registration ===
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(console.error);
 }
 
-/* ---------- Editor, preview & font ---------- */
-const editor = $('#editor');
-const preview = $('#preview');
-const status = $('#status');
-let currentFile = null; // filename string
-let autosaveTimer = null;
-const AUTOSAVE_DELAY = 700; // ms debounce
+const editor = document.getElementById('editor');
+const statusEl = document.getElementById('status');
+let currentFont = 0;
+const fonts = ['var(--font-default)', 'var(--font-alt)'];
 
-// font toggle state
-let fontState = 'default'; // 'default' or 'courier'
-function applyFont() {
-  document.documentElement.style.setProperty('--font-default', fontState==='courier'? 'var(--font-alt)' : '"Chicago", "Monaco", monospace');
-  editor.style.fontFamily = getComputedStyle(document.documentElement).getPropertyValue('--font-default').trim();
+// === Autosave Setup ===
+const STORAGE_KEY = 'system1-md-content';
+function saveContent() {
+  statusEl.textContent = 'Saving...';
+  localStorage.setItem(STORAGE_KEY, editor.value);
+  setTimeout(() => statusEl.textContent = 'Saved', 300);
 }
-applyFont();
-
-/* ---------- Simple Markdown renderer (keeps only black/white output) ---------- */
-function renderMarkdown(md) {
-  if(!md) return '';
-  // escape HTML first
-  const esc = md.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  // code blocks (``` ) => <pre><code>
-  let out = esc
-    .replace(/```([\s\S]*?)```/g, (m,code)=>`<pre><code>${code}</code></pre>`)
-    .replace(/^# (.*$)/gm,'<h1>$1</h1>')
-    .replace(/^## (.*$)/gm,'<h2>$1</h2>')
-    .replace(/^\- (.*$)/gm,'<li>$1</li>')
-    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
-    .replace(/\*(.*?)\*/g,'<em>$1</em>')
-    .replace(/$begin:math:display$(.*?)$end:math:display$$begin:math:text$(.*?)$end:math:text$/g,'<a href="$2" target="_blank">$1</a>')
-    .replace(/\n/g,'<br>');
-  // wrap loose list items
-  out = out.replace(/(<li>[\s\S]*?<\/li>)/g, (m) => { return '<ul>'+m.replace(/<\/?li>/g,'')+'</ul>'; });
-  return out;
+function loadContent() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved !== null) editor.value = saved;
 }
-
-/* ---------- IndexedDB wrapper ---------- */
-const DB_NAME = 'system1-md';
-const STORE = 'files';
-let dbPromise = null;
-
-function openDB() {
-  if(dbPromise) return dbPromise;
-  dbPromise = new Promise((resolve, reject) => {
-    const r = indexedDB.open(DB_NAME, 1);
-    r.onupgradeneeded = (e) => {
-      const db = e.target.result;
-      if(!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: 'name' });
-    };
-    r.onsuccess = () => resolve(r.result);
-    r.onerror = () => reject(r.error);
-  });
-  return dbPromise;
-}
-
-async function saveToDB(name, content) {
-  const db = await openDB();
-  return new Promise((res,rej)=>{
-    const tx = db.transaction(STORE, 'readwrite');
-    tx.objectStore(STORE).put({ name, content, updated: Date.now() });
-    tx.oncomplete = ()=>res();
-    tx.onerror = ()=>rej(tx.error);
-  });
-}
-
-async function getFromDB(name) {
-  const db = await openDB();
-  return new Promise((res,rej)=>{
-    const tx = db.transaction(STORE,'readonly');
-    const req = tx.objectStore(STORE).get(name);
-    req.onsuccess = ()=>res(req.result ? req.result.content : null);
-    req.onerror = ()=>rej(req.error);
-  });
-}
-
-async function listFiles() {
-  const db = await openDB();
-  return new Promise((res,rej)=>{
-    const tx = db.transaction(STORE,'readonly');
-    const out = [];
-    const req = tx.objectStore(STORE).openCursor();
-    req.onsuccess = e=> {
-      const cur = e.target.result;
-      if(!cur) { res(out); return; }
-      out.push({ name: cur.value.name, updated: cur.value.updated });
-      cur.continue();
-    };
-    req.onerror = ()=> rej(req.error);
-  });
-}
-
-/* ---------- Autosave logic ---------- */
-function scheduleAutosave() {
-  status.textContent = 'Saving...';
-  clearTimeout(autosaveTimer);
-  autosaveTimer = setTimeout(async ()=>{
-    try {
-      if(!currentFile) {
-        // generate a default untitled name with increment if needed
-        currentFile = await pickDefaultUntitled();
-      }
-      await saveToDB(currentFile, editor.value);
-      localStorage.setItem('lastFile', currentFile);
-      status.textContent = 'Saved';
-      refreshFileListInMenu();
-    } catch (err) {
-      status.textContent = 'Save error';
-      console.error(err);
-    }
-  }, AUTOSAVE_DELAY);
-}
-
-async function pickDefaultUntitled() {
-  const files = await listFiles();
-  let i=1;
-  while(true) {
-    const tryName = `Untitled ${i}.md`;
-    if(!files.find(f=>f.name===tryName)) return tryName;
-    i++;
-  }
-}
-
-/* ---------- Simple undo/redo stack for textarea ---------- */
-const UNDO_LIMIT = 200;
-const undoStack = [];
-const redoStack = [];
-let lastRecorded = editor.value;
-
-function recordChange() {
-  const cur = editor.value;
-  if(cur === lastRecorded) return;
-  undoStack.push(lastRecorded);
-  if(undoStack.length > UNDO_LIMIT) undoStack.shift();
-  lastRecorded = cur;
-  redoStack.length = 0;
-}
-function doUndo() {
-  if(!undoStack.length) return;
-  redoStack.push(editor.value);
-  const v = undoStack.pop();
-  editor.value = v;
-  editor.dispatchEvent(new Event('input'));
-}
-function doRedo() {
-  if(!redoStack.length) return;
-  undoStack.push(editor.value);
-  const v = redoStack.pop();
-  editor.value = v;
-  editor.dispatchEvent(new Event('input'));
-}
-
-/* ---------- Formatting helpers ---------- */
-function wrapSelection(wrapperStart, wrapperEnd = wrapperStart) {
-  const s = editor.selectionStart, e = editor.selectionEnd;
-  const sel = editor.value.slice(s,e) || '';
-  const newText = wrapperStart + sel + wrapperEnd;
-  editor.setRangeText(newText, s, e, 'end');
-  editor.focus();
-  editor.dispatchEvent(new Event('input'));
-}
-
-function prefixLines(prefix) {
-  const s = editor.selectionStart, e = editor.selectionEnd;
-  const before = editor.value.slice(0, s);
-  const sel = editor.value.slice(s, e);
-  const after = editor.value.slice(e);
-  const out = sel.split('\n').map(line => line.length? prefix+line : line).join('\n');
-  const newVal = before + out + after;
-  editor.value = newVal;
-  editor.setSelectionRange(before.length, before.length + out.length);
-  editor.dispatchEvent(new Event('input'));
-}
-
-async function insertLink() {
-  const s = editor.selectionStart, e = editor.selectionEnd;
-  const sel = editor.value.slice(s,e) || 'link';
-  const url = prompt('URL','https://');
-  if(!url) return;
-  const newText = `[${sel}](${url})`;
-  editor.setRangeText(newText, s, e, 'end');
-  editor.dispatchEvent(new Event('input'));
-}
-
-/* ---------- Menu action handlers ---------- */
-async function action_new() {
-  const name = prompt('New filename (include .md):', 'Untitled.md');
-  if(!name) return;
-  currentFile = name;
-  editor.value = '';
-  recordChange();
-  scheduleAutosave();
-  status.textContent = 'New';
-}
-async function action_open() {
-  // open menu shows then user can pick file list (handled via file list click)
-  // We'll populate file-list when File menu opens (see refreshFileListInMenu)
-}
-async function action_save() {
-  if(!currentFile) {
-    const name = prompt('Save as name (include .md):', 'Untitled.md');
-    if(!name) return;
-    currentFile = name;
-  }
-  await saveToDB(currentFile, editor.value);
-  localStorage.setItem('lastFile', currentFile);
-  status.textContent = 'Saved';
-  refreshFileListInMenu();
-}
-function action_undo(){ doUndo(); }
-function action_redo(){ doRedo(); }
-async function action_copy() {
-  const s = editor.selectionStart, e = editor.selectionEnd;
-  const text = editor.value.slice(s,e);
-  try { await navigator.clipboard.writeText(text); } catch(err){ fallbackCopy(text); }
-}
-async function action_paste() {
-  try {
-    const t = await navigator.clipboard.readText();
-    const s = editor.selectionStart, e = editor.selectionEnd;
-    editor.setRangeText(t, s, e, 'end');
-    editor.dispatchEvent(new Event('input'));
-  } catch(err) {
-    // ignore
-  }
-}
-function action_fmt_bold(){ wrapSelection('**','**'); }
-function action_fmt_italic(){ wrapSelection('*','*'); }
-function action_fmt_bullets(){ prefixLines('- '); }
-function action_fmt_h1(){ prefixLines('# '); }
-function action_fmt_h2(){ prefixLines('## '); }
-function action_fmt_link(){ insertLink(); }
-function action_view_togglePreview(){ togglePreview(); }
-function action_view_toggleDark(){ document.body.classList.toggle('dark'); }
-function action_view_toggleFont(){ fontState = fontState==='default' ? 'courier' : 'default'; applyFont(); }
-
-/* action map by data-action tokens */
-const ACTIONS = {
-  'file-new': action_new,
-  'file-open': action_open,
-  'file-save': action_save,
-  'edit-undo': action_undo,
-  'edit-redo': action_redo,
-  'edit-copy': action_copy,
-  'edit-paste': action_paste,
-  'fmt-bold': action_fmt_bold,
-  'fmt-italic': action_fmt_italic,
-  'fmt-bullets': action_fmt_bullets,
-  'fmt-h1': action_fmt_h1,
-  'fmt-h2': action_fmt_h2,
-  'fmt-link': action_fmt_link,
-  'view-togglePreview': action_view_togglePreview,
-  'view-toggleDark': action_view_toggleDark,
-  'view-toggleFont': action_view_toggleFont
-};
-
-/* wire up menu clicks */
-document.addEventListener('click', (e) => {
-  const act = e.target.closest('[data-action]');
-  if(act) {
-    const key = act.getAttribute('data-action');
-    const fn = ACTIONS[key];
-    if(fn) fn();
-    closeAllMenus();
-  }
-});
-
-/* ---------- dynamic file list inside File menu ---------- */
-async function refreshFileListInMenu() {
-  const listPlaceholder = $('#file-list-placeholder');
-  const dd = listPlaceholder.parentElement;
-  // remove existing dynamic items
-  Array.from(dd.querySelectorAll('.dynamic-file')).forEach(n => n.remove());
-  try {
-    const files = await listFiles();
-    if(files.length === 0) {
-      listPlaceholder.style.display = 'block';
-    } else {
-      listPlaceholder.style.display = 'none';
-      // add most-recent first
-      files.sort((a,b)=> (b.updated||0) - (a.updated||0));
-      files.forEach(f => {
-        const div = document.createElement('div');
-        div.className = 'dd-item dynamic-file';
-        div.textContent = f.name;
-        div.title = f.name;
-        div.addEventListener('click', async (ev) => {
-          currentFile = f.name;
-          const content = await getFromDB(f.name);
-          editor.value = content || '';
-          lastRecorded = editor.value;
-          editor.dispatchEvent(new Event('input'));
-          closeAllMenus();
-          status.textContent = 'Loaded';
-          localStorage.setItem('lastFile', currentFile);
-        });
-        dd.appendChild(div);
-      });
-    }
-  } catch(err) {
-    console.error(err);
-  }
-}
-
-/* ---------- Preview toggle ---------- */
-function togglePreview() {
-  if(preview.classList.contains('visible')) {
-    preview.classList.remove('visible');
-    editor.classList.add('visible');
-    status.textContent = 'Edit';
-  } else {
-    preview.innerHTML = renderMarkdown(editor.value);
-    preview.classList.add('visible');
-    editor.classList.remove('visible');
-    status.textContent = 'Preview';
-  }
-}
-
-/* ---------- keyboard shortcuts ---------- */
-document.addEventListener('keydown', (e) => {
-  // respect inputs when modal open? we have none.
-  const mod = isMac ? e.metaKey : e.ctrlKey;
-  if(!mod && !e.altKey) return;
-  // mapping:
-  if(mod && !e.shiftKey && e.key.toLowerCase() === 'n') { e.preventDefault(); action_new(); return; }
-  if(mod && !e.shiftKey && e.key.toLowerCase() === 'o') { e.preventDefault(); action_open(); // open file menu
-    // open file menu UI:
-    const fileMenu = document.querySelector('.menu[data-menu="File"]'); closeAllMenus(); fileMenu.classList.add('open'); refreshFileListInMenu(); return; }
-  if(mod && !e.shiftKey && e.key.toLowerCase() === 's') { e.preventDefault(); action_save(); return; }
-  if(mod && !e.shiftKey && e.key.toLowerCase() === 'z') { e.preventDefault(); action_undo(); return; }
-  if(mod && e.shiftKey && e.key.toLowerCase() === 'z') { e.preventDefault(); action_redo(); return; }
-  if(mod && !e.shiftKey && e.key.toLowerCase() === 'c') { e.preventDefault(); action_copy(); return; }
-  if(mod && !e.shiftKey && e.key.toLowerCase() === 'v') { e.preventDefault(); action_paste(); return; }
-  if(mod && !e.shiftKey && e.key.toLowerCase() === 'b') { e.preventDefault(); action_fmt_bold(); return; }
-  if(mod && !e.shiftKey && e.key.toLowerCase() === 'i') { e.preventDefault(); action_fmt_italic(); return; }
-  if(mod && !e.shiftKey && e.key.toLowerCase() === 'k') { e.preventDefault(); action_fmt_link(); return; }
-  // Shift combos:
-  if(mod && e.shiftKey && e.key === '8') { e.preventDefault(); action_fmt_bullets(); return; } // ⇧8
-  if(mod && e.shiftKey && e.key === '1') { e.preventDefault(); action_fmt_h1(); return; }
-  if(mod && e.shiftKey && e.key === '2') { e.preventDefault(); action_fmt_h2(); return; }
-  if(mod && e.shiftKey && e.key.toLowerCase() === 'p') { e.preventDefault(); action_view_togglePreview(); return; }
-  if(mod && e.shiftKey && e.key.toLowerCase() === 'd') { e.preventDefault(); action_view_toggleDark(); return; }
-  if(mod && e.shiftKey && e.key.toLowerCase() === 'f') { e.preventDefault(); action_view_toggleFont(); return; }
-});
-
-/* ---------- detect editor changes (history + autosave) ---------- */
 editor.addEventListener('input', () => {
-  recordChange();
-  scheduleAutosave();
+  saveContent();
 });
+window.addEventListener('load', loadContent);
 
-/* ---------- load last file on startup ---------- */
-(async function startup(){
-  try {
-    const last = localStorage.getItem('lastFile');
-    if(last) {
-      currentFile = last;
-      const content = await getFromDB(last);
-      if(content !== null) {
-        editor.value = content;
-        lastRecorded = editor.value;
-      }
-    } else {
-      // if none, create Untitled 1
-      currentFile = await pickDefaultUntitled();
-      // do not create content until user types
-    }
-    scheduleAutosave(); // ensure saved in DB if needed
-    status.textContent = 'Ready';
-    refreshFileListInMenu();
-  } catch(err) {
-    console.error(err);
-  }
-})();
-
-/* ---------- file list refresh when File menu hovered/opened ---------- */
-$all('.menu').forEach(m => {
-  m.addEventListener('mouseenter', () => {
-    if(m.getAttribute('data-menu') === 'File') refreshFileListInMenu();
+// === Menu Actions ===
+document.querySelectorAll('.dropdown div').forEach(item => {
+  item.addEventListener('click', () => {
+    const action = item.dataset.action;
+    handleAction(action);
   });
 });
 
-/* ---------- helper fallback copy if clipboard unavailable ---------- */
-function fallbackCopy(text) {
-  const ta = document.createElement('textarea');
-  ta.value = text;
-  document.body.appendChild(ta);
-  ta.select();
-  try { document.execCommand('copy'); } catch(_) {}
-  ta.remove();
+function handleAction(action) {
+  switch (action) {
+    case 'new':
+      editor.value = '';
+      saveContent();
+      break;
+    case 'open':
+      openFile();
+      break;
+    case 'save':
+      downloadFile();
+      break;
+    case 'undo':
+      document.execCommand('undo');
+      break;
+    case 'redo':
+      document.execCommand('redo');
+      break;
+    case 'copy':
+      document.execCommand('copy');
+      break;
+    case 'paste':
+      document.execCommand('paste');
+      break;
+    case 'bold':
+      wrapSelection('**','**');
+      break;
+    case 'italic':
+      wrapSelection('*','*');
+      break;
+    case 'bullets':
+      prependLines('- ');
+      break;
+    case 'h1':
+      prependLines('# ');
+      break;
+    case 'h2':
+      prependLines('## ');
+      break;
+    case 'link':
+      wrapSelection('[','](url)');
+      break;
+    case 'toggle-theme':
+      document.body.classList.toggle('dark');
+      break;
+    case 'preview':
+      previewMarkdown();
+      break;
+    case 'toggle-font':
+      currentFont = (currentFont + 1) % fonts.length;
+      editor.style.fontFamily = fonts[currentFont];
+      break;
+  }
 }
 
-/* ---------- make sure clicking outside dropdown closes it ---------- */
-document.addEventListener('touchstart', (e) => { if(!e.target.closest('.menu')) closeAllMenus(); });
-
-/* ---------- register service worker (sw.js must exist in same folder) ---------- */
-if('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch(()=>{/* ignore for now */});
+function wrapSelection(before, after) {
+  const start = editor.selectionStart;
+  const end = editor.selectionEnd;
+  const selected = editor.value.slice(start, end);
+  editor.setRangeText(before + selected + after, start, end, 'end');
+  saveContent();
 }
 
+function prependLines(prefix) {
+  const start = editor.selectionStart;
+  const end = editor.selectionEnd;
+  const selected = editor.value.slice(start, end);
+  const modified = selected.split('\n').map(line => prefix + line).join('\n');
+  editor.setRangeText(modified, start, end, 'end');
+  saveContent();
+}
+
+function openFile() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.md,.txt';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      editor.value = reader.result;
+      saveContent();
+      statusEl.textContent = 'Loaded';
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+function downloadFile() {
+  const blob = new Blob([editor.value], {type: 'text/markdown'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'document.md';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function previewMarkdown() {
+  const win = window.open('', '_blank');
+  win.document.write('<pre>' + editor.value.replace(/</g,'&lt;') + '</pre>');
+}
 </script>
 </body>
 </html>
