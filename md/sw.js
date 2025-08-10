@@ -1,61 +1,65 @@
-const CACHE_NAME = 'system1-md-v1';
-const ASSETS = [
-  './',
-  './index.html',
-  './manifest.json',
-  './icon-192.png',
-  './icon-512.png',
-  './courier-prime.woff2',
-  './chicago.woff2'
+const CACHE_NAME = 'macwrite-pwa-v1';
+const APP_SHELL = [
+  '/',
+  '/index.html',
+  '/manifest.json',
+  '/sw.js',
+  // Fonts
+  '/fonts/chicago.woff2',
+  '/fonts/courier-prime.woff2',
+  // External libs cached for offline
+  'https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js',
+  'https://cdn.jsdelivr.net/npm/idb-keyval@6/dist/idb-keyval.iife.min.js'
 ];
 
-// on install: cache all shell files
-self.addEventListener('install', event => {
+// Install - cache all app shell resources
+self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(APP_SHELL);
+    })
   );
   self.skipWaiting();
 });
 
-// activate: cleanup old caches
-self.addEventListener('activate', event => {
+// Activate - clean old caches
+self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then(keys => Promise.all(
-      keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
-    ))
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys
+          .filter((key) => key !== CACHE_NAME)
+          .map((key) => caches.delete(key))
+      );
+    })
   );
   self.clients.claim();
 });
 
-// fetch: prefer cache, fallback to network, and update cache
-self.addEventListener('fetch', event => {
-  const req = event.request;
-  // For same-origin navigation (index.html) prefer network-first for updates
-  if (req.mode === 'navigate') {
-    event.respondWith(
-      fetch(req).then(res => {
-        const copy = res.clone();
-        caches.open(CACHE_NAME).then(c => c.put(req, copy));
-        return res;
-      }).catch(() => caches.match(req).then(r => r || caches.match('./index.html')))
-    );
+// Fetch - serve cached files when offline
+self.addEventListener('fetch', (event) => {
+  const request = event.request;
+
+  // IndexedDB requests should pass through
+  if (request.url.includes('/indexeddb/')) {
     return;
   }
 
   event.respondWith(
-    caches.match(req).then(cached => {
-      if (cached) return cached;
-      return fetch(req).then(res => {
-        // cache fonts and other assets
-        const resClone = res.clone();
-        caches.open(CACHE_NAME).then(cache => {
-          // avoid caching opaque third-party responses
-          if (res && res.status === 200) cache.put(req, resClone);
-        });
-        return res;
-      }).catch(() => {
-        // fallback: maybe return a placeholder for images etc.
-      });
+    caches.match(request).then((cachedResponse) => {
+      if (cachedResponse) {
+        // Fetch in background to update cache
+        event.waitUntil(
+          fetch(request).then((networkResponse) => {
+            return caches.open(CACHE_NAME).then((cache) => {
+              cache.put(request, networkResponse.clone());
+              return networkResponse;
+            });
+          }).catch(() => {})
+        );
+        return cachedResponse;
+      }
+      return fetch(request).catch(() => cachedResponse);
     })
   );
 });
