@@ -1,300 +1,616 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>System-1 Markdown — Minimal MacWrite PWA</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#ffffff">
-<title>System-1 Markdown</title>
 
 <style>
-/* === Embedded Local Font References === */
+/* ========================
+   Fonts (local .woff2 expected)
+   ======================== */
 @font-face {
-  font-family: 'Courier Prime Local';
-  src: url('./courier-prime.woff2') format('woff2');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Chicago Local';
+  font-family: "Chicago Local";
   src: url('./chicago.woff2') format('woff2');
-  font-weight: normal;
-  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Courier Prime Local";
+  src: url('./courier-prime.woff2') format('woff2');
   font-display: swap;
 }
 
-:root {
-  --font-default: 'Chicago Local', 'Chicago', 'Monaco', monospace;
-  --font-alt: 'Courier Prime Local', 'Courier Prime', monospace;
-  --bg-light: #ffffff;
-  --bg-dark: #000000;
-  --fg-light: #000000;
-  --fg-dark: #ffffff;
+/* ========================
+   System 1 monochrome base
+   ======================== */
+:root{
+  --bg: #fff;
+  --fg: #000;
+  --menubar-h: 28px;
+  --font-ui: "Chicago Local", "Monaco", monospace;
+  --font-mono: "Courier Prime Local", "Courier New", monospace;
 }
+html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-ui);-webkit-font-smoothing:none;image-rendering:pixelated;}
+body.dark{ --bg: #000; --fg:#fff; background:var(--bg); color:var(--fg); }
 
-body {
-  margin: 0;
-  font-family: var(--font-default);
-  background-color: var(--bg-light);
-  color: var(--fg-light);
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-}
-
-/* === Menu Bar === */
+/* Menubar */
 #menubar {
-  display: flex;
-  align-items: center;
-  background: #ffffff;
-  color: black;
-  border-bottom: 1px solid #000;
-  padding: 0 8px;
-  font-size: 14px;
-  user-select: none;
+  height:var(--menubar-h);
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:0 8px;
+  background:var(--bg);
+  color:var(--fg);
+  border-bottom:1px solid var(--fg);
+  user-select:none;
+  font-size:13px;
+  box-sizing:border-box;
 }
+#menu-left{display:flex;gap:6px;align-items:center;}
+#menu-right{margin-left:auto;display:flex;align-items:center;gap:10px;padding-right:6px;font-size:12px;}
 
+/* top-level menu label */
 .menu {
-  position: relative;
-  padding: 4px 8px;
-  cursor: default;
+  position:relative;
+  padding:0 8px;
+  height:var(--menubar-h);
+  display:flex;
+  align-items:center;
+  cursor:default;
+  white-space:nowrap;
 }
 
-.menu:hover {
-  background: #000;
-  color: #fff;
-}
-
+/* dropdown (hidden until .open added) */
 .dropdown {
-  display: none;
-  position: absolute;
-  top: 100%;
-  left: 0;
-  background: #fff;
-  color: black;
-  border: 1px solid #000;
-  min-width: 160px;
-  white-space: nowrap;
+  position:absolute;
+  top: calc(var(--menubar-h) + 2px);
+  left:0;
+  border:1px solid var(--fg);
+  background:var(--bg);
+  color:var(--fg);
+  display:none;
+  flex-direction:column;
+  z-index:60;
+  min-width: 180px;
+  box-sizing:border-box;
+  white-space:nowrap; /* ensure single-line menu items */
+  max-height: calc(100vh - 60px);
+  overflow:auto;
+}
+.menu.open > .dropdown { display:flex; }
+
+/* dropdown items */
+.dd-item {
+  padding:6px 10px;
+  white-space:nowrap;
+  cursor:default;
+  border-bottom:1px dotted var(--fg);
+  font-family:var(--font-ui);
+  font-size:13px;
+}
+.dd-item:last-child{ border-bottom:none; }
+.dd-item:hover {
+  /* 1-bit highlight (dither-like) */
+  background-image: linear-gradient(90deg, var(--fg) 25%, var(--bg) 25%, var(--bg) 50%, var(--fg) 50%);
+  background-size: 4px 4px;
+  color: var(--bg);
 }
 
-.menu:hover .dropdown {
-  display: block;
-}
+/* status / save indicator */
+#status { display:flex; gap:8px; align-items:center; color:var(--fg); font-size:12px; }
+#save-dot { width:10px; height:10px; border:1px solid var(--fg); display:inline-block; }
 
-.dropdown div {
-  padding: 4px 8px;
+/* Editor & Preview */
+#editor, #preview {
+  box-sizing:border-box;
+  width:100%;
+  height: calc(100vh - var(--menubar-h));
+  margin:0;
+  padding:18px;
+  font-size:16px;
+  line-height:1.3;
+  background:var(--bg);
+  color:var(--fg);
+  outline:none;
+  border:none;
+  -webkit-appearance:none;
+  font-family:var(--font-mono);
+  overflow:auto;
+  white-space:pre-wrap;
+  word-wrap:break-word;
 }
+#preview { display:none; font-family:var(--font-ui); }
 
-.dropdown div:hover {
-  background: #000;
-  color: #fff;
-}
+/* visible helper */
+.visible { display:block !important; }
 
-#status {
-  margin-left: auto;
-  font-size: 12px;
-  padding-left: 8px;
-}
+/* small helper for file list placeholder */
+.placeholder { font-style:italic; color:gray; }
 
-/* === Editor === */
-#editor {
-  flex: 1;
-  padding: 8px;
-  font-family: var(--font-alt);
-  font-size: 14px;
-  line-height: 1.4;
-  outline: none;
-  border: none;
-  resize: none;
-  background: transparent;
-  color: inherit;
-}
-
-.dark {
-  background-color: var(--bg-dark);
-  color: var(--fg-dark);
-}
+/* Keep everything sharp */
+* { image-rendering: pixelated; -webkit-font-smoothing: none; }
 </style>
 </head>
 <body>
 
+<!-- Menubar -->
 <div id="menubar">
-  <div class="menu">File
-    <div class="dropdown">
-      <div data-action="new">New ⌘N</div>
-      <div data-action="open">Open ⌘O</div>
-      <div data-action="save">Save ⌘S</div>
+  <div id="menu-left">
+    <div style="padding-right:8px;font-weight:bold;"></div>
+
+    <div class="menu" data-menu="File" tabindex="0">File
+      <div class="dropdown" data-menu-list="File">
+        <div class="dd-item" data-action="file-new">New ⌘/Ctrl+N</div>
+        <div class="dd-item" data-action="file-open">Open ⌘/Ctrl+O</div>
+        <div class="dd-item" data-action="file-save">Save ⌘/Ctrl+S</div>
+        <div class="dd-item" style="border-bottom:none;"></div>
+        <div id="file-list-placeholder" class="dd-item placeholder">(No saved files)</div>
+      </div>
+    </div>
+
+    <div class="menu" data-menu="Edit" tabindex="0">Edit
+      <div class="dropdown" data-menu-list="Edit">
+        <div class="dd-item" data-action="edit-undo">Undo ⌘/Ctrl+Z</div>
+        <div class="dd-item" data-action="edit-redo">Redo ⇧⌘/Ctrl+⇧Ctrl+Z</div>
+        <div class="dd-item" data-action="edit-copy">Copy ⌘/Ctrl+C</div>
+        <div class="dd-item" data-action="edit-paste">Paste ⌘/Ctrl+V</div>
+      </div>
+    </div>
+
+    <div class="menu" data-menu="Format" tabindex="0">Format
+      <div class="dropdown" data-menu-list="Format">
+        <div class="dd-item" data-action="fmt-bold">Bold ⌘/Ctrl+B</div>
+        <div class="dd-item" data-action="fmt-italic">Italic ⌘/Ctrl+I</div>
+        <div class="dd-item" data-action="fmt-bullets">Bullets ⇧⌘/Ctrl+⇧8</div>
+        <div class="dd-item" data-action="fmt-h1">H1 ⇧⌘/Ctrl+⇧1</div>
+        <div class="dd-item" data-action="fmt-h2">H2 ⇧⌘/Ctrl+⇧2</div>
+        <div class="dd-item" data-action="fmt-link">Link ⌘/Ctrl+K</div>
+      </div>
+    </div>
+
+    <div class="menu" data-menu="View" tabindex="0">View
+      <div class="dropdown" data-menu-list="View">
+        <div class="dd-item" data-action="view-togglePreview">Toggle Preview ⇧⌘/Ctrl+⇧P</div>
+        <div class="dd-item" data-action="view-toggleDark">Toggle Dark ⇧⌘/Ctrl+⇧D</div>
+        <div class="dd-item" data-action="view-toggleFont">Toggle Font ⇧⌘/Ctrl+⇧F</div>
+      </div>
     </div>
   </div>
-  <div class="menu">Edit
-    <div class="dropdown">
-      <div data-action="undo">Undo ⌘Z</div>
-      <div data-action="redo">Redo ⇧⌘Z</div>
-      <div data-action="copy">Copy ⌘C</div>
-      <div data-action="paste">Paste ⌘V</div>
+
+  <div id="menu-right">
+    <div id="status">
+      <div id="save-dot" title="save status" style="background:transparent;"></div>
+      <div id="status-text">Ready</div>
     </div>
   </div>
-  <div class="menu">Markdown
-    <div class="dropdown">
-      <div data-action="bold">Bold ⌘B</div>
-      <div data-action="italic">Italic ⌘I</div>
-      <div data-action="bullets">Bullets ⌘U</div>
-      <div data-action="h1">H1</div>
-      <div data-action="h2">H2</div>
-      <div data-action="link">Link ⌘K</div>
-    </div>
-  </div>
-  <div class="menu">View
-    <div class="dropdown">
-      <div data-action="toggle-theme">Toggle Dark/Light</div>
-      <div data-action="preview">Preview</div>
-      <div data-action="toggle-font">Toggle Font</div>
-    </div>
-  </div>
-  <div id="status">Loaded</div>
 </div>
 
-<textarea id="editor" spellcheck="false"></textarea>
+<!-- Editor + Preview -->
+<textarea id="editor" spellcheck="false" autofocus></textarea>
+<div id="preview" role="region" aria-label="Preview area"></div>
+
+<!-- markdown-it from CDN (used for full Gruber-like rendering) -->
+<script src="https://cdn.jsdelivr.net/npm/markdown-it@13.0.1/dist/markdown-it.min.js"></script>
 
 <script>
-// === Service Worker Registration ===
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js').catch(console.error);
-}
+/* ===========================
+   Core app logic
+   - click-to-open menus
+   - IndexedDB file storage
+   - autosave (debounced)
+   - hotkeys (Mac & PC)
+   - preview with markdown-it
+   - dark mode & font toggle persistence
+   =========================== */
 
-const editor = document.getElementById('editor');
-const statusEl = document.getElementById('status');
-let currentFont = 0;
-const fonts = ['var(--font-default)', 'var(--font-alt)'];
+/* ---------- utils ---------- */
+const isMac = navigator.platform.toUpperCase().includes('MAC');
+const modName = isMac ? 'metaKey' : 'ctrlKey';
+function modPressed(e) { return isMac ? e.metaKey : e.ctrlKey; }
+function $all(sel, root=document) { return Array.from(root.querySelectorAll(sel)); }
+function $ (sel) { return document.querySelector(sel); }
 
-// === Autosave Setup ===
-const STORAGE_KEY = 'system1-md-content';
-function saveContent() {
-  statusEl.textContent = 'Saving...';
-  localStorage.setItem(STORAGE_KEY, editor.value);
-  setTimeout(() => statusEl.textContent = 'Saved', 300);
-}
-function loadContent() {
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved !== null) editor.value = saved;
-}
-editor.addEventListener('input', () => {
-  saveContent();
-});
-window.addEventListener('load', loadContent);
+/* ---------- DOM ---------- */
+const editor = $('#editor');
+const preview = $('#preview');
+const saveDot = $('#save-dot');
+const statusText = $('#status-text');
 
-// === Menu Actions ===
-document.querySelectorAll('.dropdown div').forEach(item => {
-  item.addEventListener('click', () => {
-    const action = item.dataset.action;
-    handleAction(action);
+/* ---------- Menu open/close behavior (click only) ---------- */
+$all('.menu').forEach(menu => {
+  menu.addEventListener('click', (e) => {
+    e.stopPropagation();
+    // toggle this menu, close others
+    const isOpen = menu.classList.contains('open');
+    closeAllMenus();
+    if(!isOpen) {
+      menu.classList.add('open');
+      // if file menu, refresh list
+      if(menu.getAttribute('data-menu') === 'File') refreshFileListInMenu();
+    }
+  });
+  // allow keyboard enter to open menu
+  menu.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); menu.click(); }
   });
 });
+document.addEventListener('click', (e) => closeAllMenus());
+function closeAllMenus() { $all('.menu.open').forEach(m => m.classList.remove('open')); }
 
-function handleAction(action) {
-  switch (action) {
-    case 'new':
-      editor.value = '';
-      saveContent();
-      break;
-    case 'open':
-      openFile();
-      break;
-    case 'save':
-      downloadFile();
-      break;
-    case 'undo':
-      document.execCommand('undo');
-      break;
-    case 'redo':
-      document.execCommand('redo');
-      break;
-    case 'copy':
-      document.execCommand('copy');
-      break;
-    case 'paste':
-      document.execCommand('paste');
-      break;
-    case 'bold':
-      wrapSelection('**','**');
-      break;
-    case 'italic':
-      wrapSelection('*','*');
-      break;
-    case 'bullets':
-      prependLines('- ');
-      break;
-    case 'h1':
-      prependLines('# ');
-      break;
-    case 'h2':
-      prependLines('## ');
-      break;
-    case 'link':
-      wrapSelection('[','](url)');
-      break;
-    case 'toggle-theme':
-      document.body.classList.toggle('dark');
-      break;
-    case 'preview':
-      previewMarkdown();
-      break;
-    case 'toggle-font':
-      currentFont = (currentFont + 1) % fonts.length;
-      editor.style.fontFamily = fonts[currentFont];
-      break;
+/* ---------- markdown-it renderer (full Gruber-like) ---------- */
+const md = window.markdownit({ html: false, linkify: true, typographer: true });
+
+/* ---------- IndexedDB wrapper ---------- */
+const DB_NAME = 'system1-md';
+const STORE = 'files';
+let dbPromise = null;
+function openDB() {
+  if(dbPromise) return dbPromise;
+  dbPromise = new Promise((resolve,reject)=>{
+    const r = indexedDB.open(DB_NAME,1);
+    r.onupgradeneeded = e => {
+      const db = e.target.result;
+      if(!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: 'name' });
+    };
+    r.onsuccess = ()=> resolve(r.result);
+    r.onerror = ()=> reject(r.error);
+  });
+  return dbPromise;
+}
+async function saveFileToDB(name, content) {
+  const db = await openDB();
+  return new Promise((res,rej)=>{
+    const tx = db.transaction(STORE, 'readwrite');
+    tx.objectStore(STORE).put({ name, content, updated: Date.now() });
+    tx.oncomplete = ()=> res();
+    tx.onerror = ()=> rej(tx.error);
+  });
+}
+async function readFileFromDB(name){
+  const db = await openDB();
+  return new Promise((res,rej)=>{
+    const tx = db.transaction(STORE,'readonly');
+    const req = tx.objectStore(STORE).get(name);
+    req.onsuccess = ()=> res(req.result ? req.result.content : null);
+    req.onerror = ()=> rej(req.error);
+  });
+}
+async function listFilesFromDB(){
+  const db = await openDB();
+  return new Promise((res,rej)=>{
+    const tx = db.transaction(STORE,'readonly');
+    const out = [];
+    const req = tx.objectStore(STORE).openCursor();
+    req.onsuccess = e => {
+      const cur = e.target.result;
+      if(!cur) { res(out); return; }
+      out.push({ name: cur.value.name, updated: cur.value.updated });
+      cur.continue();
+    };
+    req.onerror = ()=> rej(req.error);
+  });
+}
+
+/* ---------- app state ---------- */
+let currentFile = null;
+let autosaveTimer = null;
+const AUTOSAVE_DELAY = 700;
+let unsaved = false;
+
+/* ---------- save indicator helpers ---------- */
+function setSaveState(state) {
+  // state: 'saved', 'saving', 'error', 'unsaved'
+  switch(state){
+    case 'saving': saveDot.style.background = 'transparent'; saveDot.style.borderColor = getComputedStyle(document.body).color; statusText.textContent = 'Saving...'; break;
+    case 'saved': saveDot.style.background = getComputedStyle(document.body).color; statusText.textContent = 'Saved'; break;
+    case 'unsaved': saveDot.style.background = 'transparent'; statusText.textContent = 'Unsaved'; break;
+    case 'error': saveDot.style.background = 'transparent'; statusText.textContent = 'Save error'; break;
+    default: saveDot.style.background = 'transparent'; statusText.textContent = 'Ready';
   }
 }
 
-function wrapSelection(before, after) {
-  const start = editor.selectionStart;
-  const end = editor.selectionEnd;
-  const selected = editor.value.slice(start, end);
-  editor.setRangeText(before + selected + after, start, end, 'end');
-  saveContent();
+/* ---------- autosave (debounced) ---------- */
+function scheduleAutosave(){
+  setSaveState('saving');
+  clearTimeout(autosaveTimer);
+  autosaveTimer = setTimeout(async ()=>{
+    try{
+      if(!currentFile) currentFile = await generateUntitled();
+      await saveFileToDB(currentFile, editor.value);
+      localStorage.setItem('lastFile', currentFile);
+      unsaved = false;
+      setSaveState('saved');
+      refreshFileListInMenu();
+    } catch(err){
+      console.error('save err', err);
+      setSaveState('error');
+    }
+  }, AUTOSAVE_DELAY);
 }
 
-function prependLines(prefix) {
-  const start = editor.selectionStart;
-  const end = editor.selectionEnd;
-  const selected = editor.value.slice(start, end);
-  const modified = selected.split('\n').map(line => prefix + line).join('\n');
-  editor.setRangeText(modified, start, end, 'end');
-  saveContent();
+/* pick Untitled N */
+async function generateUntitled(){
+  const files = await listFilesFromDB();
+  let i=1;
+  while(true){
+    const name = `Untitled ${i}.md`;
+    if(!files.some(f=>f.name===name)) return name;
+    i++;
+  }
 }
 
-function openFile() {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = '.md,.txt';
-  input.onchange = e => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      editor.value = reader.result;
-      saveContent();
-      statusEl.textContent = 'Loaded';
-    };
-    reader.readAsText(file);
-  };
-  input.click();
+/* ---------- editor change tracking & undo ---------- */
+editor.addEventListener('input', () => {
+  unsaved = true;
+  setSaveState('unsaved');
+  recordHistory(); // undo stack
+  scheduleAutosave();
+});
+
+/* ---------- simple undo/redo stacks ---------- */
+const undoStack = [];
+const redoStack = [];
+let lastSnapshot = editor.value;
+function recordHistory(){
+  const cur = editor.value;
+  if(cur === lastSnapshot) return;
+  undoStack.push(lastSnapshot);
+  if(undoStack.length > 200) undoStack.shift();
+  lastSnapshot = cur;
+  redoStack.length = 0;
+}
+function doUndo(){ if(!undoStack.length) return; redoStack.push(editor.value); editor.value = undoStack.pop(); editor.dispatchEvent(new Event('input')); }
+function doRedo(){ if(!redoStack.length) return; undoStack.push(editor.value); editor.value = redoStack.pop(); editor.dispatchEvent(new Event('input')); }
+
+/* ---------- menu actions map ---------- */
+const ACTIONS = {
+  'file-new': async () => {
+    const name = prompt('New filename (include .md):', 'Untitled.md');
+    if(!name) return;
+    currentFile = name;
+    editor.value = '';
+    recordHistory();
+    scheduleAutosave();
+  },
+  'file-open': async () => {
+    // open File menu UI (the file list items handle actual open)
+    const fileMenu = document.querySelector('.menu[data-menu="File"]');
+    closeAllMenus();
+    fileMenu.classList.add('open');
+    await refreshFileListInMenu();
+  },
+  'file-save': async () => {
+    if(!currentFile) currentFile = await generateUntitled();
+    setSaveState('saving');
+    try {
+      await saveFileToDB(currentFile, editor.value);
+      localStorage.setItem('lastFile', currentFile);
+      setSaveState('saved');
+      refreshFileListInMenu();
+    } catch(err){ setSaveState('error'); console.error(err); }
+  },
+  'edit-undo': ()=> doUndo(),
+  'edit-redo': ()=> doRedo(),
+  'edit-copy': async ()=> { try{ await navigator.clipboard.writeText(getSelectionText()); }catch(e){ fallbackCopy(getSelectionText()); } },
+  'edit-paste': async ()=> { try{ const t = await navigator.clipboard.readText(); insertTextAtCursor(t); }catch(e){/* ignore */} },
+  'fmt-bold': ()=> wrapSelection('**','**'),
+  'fmt-italic': ()=> wrapSelection('*','*'),
+  'fmt-bullets': ()=> prefixLines('- '),
+  'fmt-h1': ()=> prefixLines('# '),
+  'fmt-h2': ()=> prefixLines('## '),
+  'fmt-link': ()=> insertLinkPrompt(),
+  'view-togglePreview': ()=> togglePreview(),
+  'view-toggleDark': ()=> toggleDarkMode(),
+  'view-toggleFont': ()=> toggleFont()
+};
+
+/* wire dropdown clicks */
+document.addEventListener('click', (e)=>{
+  const act = e.target.closest('.dd-item');
+  if(!act) return;
+  // if this dd-item is a dynamic file entry it will not have data-action; handle below
+  const dataAction = act.getAttribute('data-action');
+  if(dataAction && ACTIONS[dataAction]) {
+    ACTIONS[dataAction]();
+    closeAllMenus();
+  }
+});
+
+/* ---------- file list in File menu (dynamic) ---------- */
+async function refreshFileListInMenu(){
+  const placeholder = $('#file-list-placeholder');
+  // remove existing dynamic items first
+  const dd = placeholder.parentElement;
+  dd.querySelectorAll('.dynamic-file').forEach(n=>n.remove());
+  try {
+    const files = await listFilesFromDB();
+    if(files.length === 0) {
+      placeholder.style.display = 'block';
+    } else {
+      placeholder.style.display = 'none';
+      files.sort((a,b)=> (b.updated||0) - (a.updated||0));
+      files.forEach(f=>{
+        const div = document.createElement('div');
+        div.className = 'dd-item dynamic-file';
+        div.textContent = f.name;
+        div.title = f.name;
+        div.addEventListener('click', async ()=> {
+          currentFile = f.name;
+          const content = await readFileFromDB(f.name);
+          editor.value = content || '';
+          lastSnapshot = editor.value;
+          editor.dispatchEvent(new Event('input'));
+          closeAllMenus();
+          statusText.textContent = 'Loaded';
+          setSaveState('saved');
+          localStorage.setItem('lastFile', currentFile);
+        });
+        dd.appendChild(div);
+      });
+    }
+  } catch(err){
+    console.error('file list err', err);
+  }
 }
 
-function downloadFile() {
-  const blob = new Blob([editor.value], {type: 'text/markdown'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'document.md';
-  a.click();
-  URL.revokeObjectURL(a.href);
+/* ---------- editor helpers ---------- */
+function getSelectionText(){
+  return editor.value.substring(editor.selectionStart, editor.selectionEnd);
+}
+function insertTextAtCursor(text) {
+  const s = editor.selectionStart, e = editor.selectionEnd;
+  editor.setRangeText(text, s, e, 'end');
+  editor.dispatchEvent(new Event('input'));
+}
+function wrapSelection(open, close=null){
+  if(close === null) close = open;
+  const s = editor.selectionStart, e = editor.selectionEnd;
+  const sel = editor.value.slice(s,e);
+  editor.setRangeText(open + sel + close, s, e, 'end');
+  editor.dispatchEvent(new Event('input'));
+}
+function prefixLines(prefix){
+  const s = editor.selectionStart, e = editor.selectionEnd;
+  const before = editor.value.slice(0,s);
+  const sel = editor.value.slice(s,e);
+  const after = editor.value.slice(e);
+  const out = sel.split('\n').map(l => l.length ? prefix + l : l).join('\n');
+  editor.value = before + out + after;
+  editor.setSelectionRange(before.length, before.length + out.length);
+  editor.dispatchEvent(new Event('input'));
+}
+function insertLinkPrompt(){
+  const s = editor.selectionStart, e = editor.selectionEnd;
+  const sel = editor.value.slice(s,e) || 'link';
+  const url = prompt('URL (include https://)', 'https://');
+  if(!url) return;
+  editor.setRangeText(`[${sel}](${url})`, s, e, 'end');
+  editor.dispatchEvent(new Event('input'));
 }
 
-function previewMarkdown() {
-  const win = window.open('', '_blank');
-  win.document.write('<pre>' + editor.value.replace(/</g,'&lt;') + '</pre>');
+/* ---------- preview toggle ---------- */
+function togglePreview(){
+  if(preview.classList.contains('visible')){
+    preview.classList.remove('visible');
+    editor.classList.add('visible');
+    statusText.textContent = 'Edit';
+  } else {
+    // render with markdown-it
+    try {
+      preview.innerHTML = md.render(editor.value);
+    } catch(e) {
+      preview.innerHTML = '<pre>' + escapeHtml(editor.value) + '</pre>';
+    }
+    preview.classList.add('visible');
+    editor.classList.remove('visible');
+    statusText.textContent = 'Preview';
+  }
+}
+function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ---------- dark mode & font toggle (persisted) ---------- */
+function applyThemeFromStorage(){
+  const dark = localStorage.getItem('sys1-dark');
+  if(dark === '1') document.body.classList.add('dark');
+  else document.body.classList.remove('dark');
+}
+function toggleDarkMode(){
+  document.body.classList.toggle('dark');
+  localStorage.setItem('sys1-dark', document.body.classList.contains('dark') ? '1':'0');
+}
+let fontState = localStorage.getItem('sys1-font') || 'default';
+function applyFontFromStorage(){
+  const font = fontState === 'courier' ? 'var(--font-mono)' : 'var(--font-ui)';
+  editor.style.fontFamily = font.replace('var(--','').replace(')','') ? font : font; // keeps var usage
+}
+function toggleFont(){
+  fontState = fontState === 'default' ? 'courier' : 'default';
+  localStorage.setItem('sys1-font', fontState);
+  applyFontFromStorage();
+}
+
+/* ---------- keyboard shortcuts (Mac & PC) ---------- */
+document.addEventListener('keydown', (e) => {
+  // ignore if menus open and user is typing? We'll still allow hotkeys globally
+  const mod = modPressed(e);
+  // New
+  if(mod && !e.shiftKey && e.key.toLowerCase() === 'n'){ e.preventDefault(); ACTIONS['file-new'](); return; }
+  // Open - open File menu to pick
+  if(mod && !e.shiftKey && e.key.toLowerCase() === 'o'){ e.preventDefault(); ACTIONS['file-open'](); return; }
+  // Save
+  if(mod && !e.shiftKey && e.key.toLowerCase() === 's'){ e.preventDefault(); ACTIONS['file-save'](); return; }
+  // Undo / Redo
+  if(mod && !e.shiftKey && e.key.toLowerCase() === 'z'){ e.preventDefault(); ACTIONS['edit-undo'](); return; }
+  if(mod && e.shiftKey && e.key.toLowerCase() === 'z'){ e.preventDefault(); ACTIONS['edit-redo'](); return; }
+  // Copy / Paste
+  if(mod && !e.shiftKey && e.key.toLowerCase() === 'c'){ /* allow native copy */ return; }
+  if(mod && !e.shiftKey && e.key.toLowerCase() === 'v'){ /* allow native paste */ return; }
+  // Bold / Italic / Link
+  if(mod && !e.shiftKey && e.key.toLowerCase() === 'b'){ e.preventDefault(); ACTIONS['fmt-bold'](); return; }
+  if(mod && !e.shiftKey && e.key.toLowerCase() === 'i'){ e.preventDefault(); ACTIONS['fmt-italic'](); return; }
+  if(mod && !e.shiftKey && e.key.toLowerCase() === 'k'){ e.preventDefault(); ACTIONS['fmt-link'](); return; }
+  // bullets (Shift+8 with mod)
+  if(mod && e.shiftKey && e.key === '8'){ e.preventDefault(); ACTIONS['fmt-bullets'](); return; }
+  if(mod && e.shiftKey && e.key === '1'){ e.preventDefault(); ACTIONS['fmt-h1'](); return; }
+  if(mod && e.shiftKey && e.key === '2'){ e.preventDefault(); ACTIONS['fmt-h2'](); return; }
+  // preview, dark, font toggles (Shift+P, Shift+D, Shift+F with mod)
+  if(mod && e.shiftKey && e.key.toLowerCase() === 'p'){ e.preventDefault(); ACTIONS['view-togglePreview'](); return; }
+  if(mod && e.shiftKey && e.key.toLowerCase() === 'd'){ e.preventDefault(); ACTIONS['view-toggleDark'](); return; }
+  if(mod && e.shiftKey && e.key.toLowerCase() === 'f'){ e.preventDefault(); ACTIONS['view-toggleFont'](); return; }
+});
+
+/* ---------- initial load: restore last file, theme, font ---------- */
+(async function init(){
+  applyThemeFromStorage();
+  applyFontFromStorage();
+  try {
+    const last = localStorage.getItem('lastFile');
+    if(last) {
+      currentFile = last;
+      const content = await readFileFromDB(last);
+      if(content !== null) {
+        editor.value = content;
+        lastSnapshot = editor.value;
+        setSaveState('saved');
+      }
+    } else {
+      // create a default untitled name but do not save immediately until user types
+      currentFile = null;
+      setSaveState('saved');
+    }
+    // refresh file list for menu on first open
+    refreshFileListInMenu();
+  } catch(e) { console.error(e); }
+})();
+
+/* ---------- helper functions ---------- */
+function fallbackCopy(text){
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); } catch(e){}
+  ta.remove();
+}
+
+/* ---------- helpers for insert/paste */ 
+// (we used clipboard.readText/writeText where available above)
+
+/* ---------- helper: close menus on escape ---------- */
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'Escape') closeAllMenus();
+});
+
+/* ---------- click outside to close menus handled earlier by document click ---------- */
+
+/* ---------- service worker register ---------- */
+if('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(()=>{/* ignore registration failures for now */});
 }
 </script>
+
 </body>
 </html>
