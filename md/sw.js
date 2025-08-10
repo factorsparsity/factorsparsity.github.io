@@ -9,7 +9,8 @@ const APP_SHELL = [
   '/courier-prime.woff2',
   // External libs cached for offline
   'https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js',
-  'https://cdn.jsdelivr.net/npm/idb-keyval@6/dist/idb-keyval.iife.min.js'
+  'https://cdn.jsdelivr.net/npm/idb-keyval@6/dist/idb-keyval.iife.min.js',
+  'https://cdn.jsdelivr.net/npm/showdown@1.9.1/dist/showdown.min.js'
 ];
 
 // Install - cache all app shell resources
