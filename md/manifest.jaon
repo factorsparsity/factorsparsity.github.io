@@ -1,27 +1,22 @@
 {
-  "name": "Markdown Editor",
-  "short_name": "MD Editor",
+  "name": "System-1 Markdown",
+  "short_name": "Sys1 MD",
   "start_url": "./index.html",
   "display": "standalone",
+  "scope": "./",
   "background_color": "#ffffff",
-  "theme_color": "#444444",
-  "orientation": "portrait",
+  "theme_color": "#000000",
   "icons": [
     {
       "src": "icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
-    },
-    {
-      "src": "icon-maskable.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
     }
   ]
 }
