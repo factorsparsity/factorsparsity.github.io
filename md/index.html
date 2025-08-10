@@ -8,9 +8,10 @@
 <meta name="theme-color" content="#ffffff">
 
 <style>
-/* ========================
-   Fonts (local .woff2 expected)
-   ======================== */
+/* --------------------------
+   Local-fonts (Option A)
+   Expect: ./chicago.woff2 and ./courier-prime.woff2 next to index.html
+   -------------------------- */
 @font-face {
   font-family: "Chicago Local";
   src: url('./chicago.woff2') format('woff2');
@@ -22,116 +23,65 @@
   font-display: swap;
 }
 
-/* ========================
-   System 1 monochrome base
-   ======================== */
+/* --------------------------
+   System-1 monochrome UI
+   -------------------------- */
 :root{
   --bg: #fff;
   --fg: #000;
   --menubar-h: 28px;
-  --font-ui: "Chicago Local", "Monaco", monospace;
-  --font-mono: "Courier Prime Local", "Courier New", monospace;
+  --ui-font: "Chicago Local", "Monaco", monospace;
+  --mono-font: "Courier Prime Local", "Courier New", monospace;
+  --editor-font-size: 16px; /* increased size */
 }
-html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-ui);-webkit-font-smoothing:none;image-rendering:pixelated;}
-body.dark{ --bg: #000; --fg:#fff; background:var(--bg); color:var(--fg); }
+html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);font-family:var(--ui-font);-webkit-font-smoothing:none;image-rendering:pixelated;}
+body.dark{ --bg:#000; --fg:#fff; background:var(--bg); color:var(--fg); }
 
 /* Menubar */
-#menubar {
-  height:var(--menubar-h);
-  display:flex;
-  align-items:center;
-  gap:8px;
-  padding:0 8px;
-  background:var(--bg);
-  color:var(--fg);
-  border-bottom:1px solid var(--fg);
-  user-select:none;
-  font-size:13px;
-  box-sizing:border-box;
-}
-#menu-left{display:flex;gap:6px;align-items:center;}
-#menu-right{margin-left:auto;display:flex;align-items:center;gap:10px;padding-right:6px;font-size:12px;}
+#menubar { height:var(--menubar-h); display:flex; align-items:center; gap:8px; padding:0 8px; background:var(--bg); color:var(--fg); border-bottom:1px solid var(--fg); user-select:none; font-size:13px; box-sizing:border-box; }
+#menu-left{ display:flex; gap:6px; align-items:center; }
+#menu-right{ margin-left:auto; display:flex; gap:10px; align-items:center; padding-right:6px; font-size:12px; }
 
-/* top-level menu label */
-.menu {
-  position:relative;
-  padding:0 8px;
-  height:var(--menubar-h);
-  display:flex;
-  align-items:center;
-  cursor:default;
-  white-space:nowrap;
-}
+/* top-level menu */
+.menu { position:relative; padding:0 8px; height:var(--menubar-h); display:flex; align-items:center; cursor:default; white-space:nowrap; }
 
-/* dropdown (hidden until .open added) */
-.dropdown {
-  position:absolute;
-  top: calc(var(--menubar-h) + 2px);
-  left:0;
-  border:1px solid var(--fg);
-  background:var(--bg);
-  color:var(--fg);
-  display:none;
-  flex-direction:column;
-  z-index:60;
-  min-width: 180px;
-  box-sizing:border-box;
-  white-space:nowrap; /* ensure single-line menu items */
-  max-height: calc(100vh - 60px);
-  overflow:auto;
-}
+/* dropdown (hidden until .open) */
+.dropdown { position:absolute; top:calc(var(--menubar-h) + 2px); left:0; border:1px solid var(--fg); background:var(--bg); color:var(--fg); display:none; flex-direction:column; z-index:60; min-width:200px; box-sizing:border-box; white-space:nowrap; max-height:calc(100vh - 60px); overflow:auto; }
 .menu.open > .dropdown { display:flex; }
 
-/* dropdown items */
-.dd-item {
-  padding:6px 10px;
-  white-space:nowrap;
-  cursor:default;
-  border-bottom:1px dotted var(--fg);
-  font-family:var(--font-ui);
-  font-size:13px;
-}
+/* dropdown items - single-line enforced */
+.dd-item { padding:6px 10px; white-space:nowrap; cursor:default; border-bottom:1px dotted var(--fg); font-family:var(--ui-font); font-size:13px; }
 .dd-item:last-child{ border-bottom:none; }
-.dd-item:hover {
-  /* 1-bit highlight (dither-like) */
-  background-image: linear-gradient(90deg, var(--fg) 25%, var(--bg) 25%, var(--bg) 50%, var(--fg) 50%);
-  background-size: 4px 4px;
-  color: var(--bg);
-}
 
-/* status / save indicator */
+/* <-- System-1 highlight: inverted black background, white text --> */
+.dd-item:hover { background:var(--fg); color:var(--bg); }
+
+/* status & save-dot */
 #status { display:flex; gap:8px; align-items:center; color:var(--fg); font-size:12px; }
 #save-dot { width:10px; height:10px; border:1px solid var(--fg); display:inline-block; }
 
 /* Editor & Preview */
 #editor, #preview {
-  box-sizing:border-box;
-  width:100%;
-  height: calc(100vh - var(--menubar-h));
-  margin:0;
-  padding:18px;
-  font-size:16px;
-  line-height:1.3;
-  background:var(--bg);
-  color:var(--fg);
-  outline:none;
-  border:none;
-  -webkit-appearance:none;
-  font-family:var(--font-mono);
-  overflow:auto;
-  white-space:pre-wrap;
-  word-wrap:break-word;
+  box-sizing:border-box; width:100%; height:calc(100vh - var(--menubar-h)); margin:0; padding:18px;
+  font-size:var(--editor-font-size); line-height:1.3; background:var(--bg); color:var(--fg); outline:none; border:none;
+  -webkit-appearance:none; overflow:auto; white-space:pre-wrap; word-wrap:break-word;
 }
-#preview { display:none; font-family:var(--font-ui); }
+#editor { font-family:var(--ui-font); } /* default: Chicago (as requested) */
+#preview { display:none; font-family:var(--ui-font); }
 
-/* visible helper */
+/* helpers */
 .visible { display:block !important; }
-
-/* small helper for file list placeholder */
 .placeholder { font-style:italic; color:gray; }
 
-/* Keep everything sharp */
-* { image-rendering: pixelated; -webkit-font-smoothing: none; }
+/* make scrollbars unobtrusive but available */
+* { image-rendering:pixelated; -webkit-font-smoothing:none; }
+.dropdown::-webkit-scrollbar, #preview::-webkit-scrollbar { width:8px; height:8px; }
+.dropdown::-webkit-scrollbar-thumb, #preview::-webkit-scrollbar-thumb { background:var(--fg); }
+
+/* prevent wrapping in menu items (ensures single-line) */
+.dropdown { white-space:nowrap; }
+.dd-item { overflow:hidden; text-overflow:ellipsis; max-width:420px; }
+
 </style>
 </head>
 <body>
@@ -154,7 +104,7 @@ body.dark{ --bg: #000; --fg:#fff; background:var(--bg); color:var(--fg); }
     <div class="menu" data-menu="Edit" tabindex="0">Edit
       <div class="dropdown" data-menu-list="Edit">
         <div class="dd-item" data-action="edit-undo">Undo ⌘/Ctrl+Z</div>
-        <div class="dd-item" data-action="edit-redo">Redo ⇧⌘/Ctrl+⇧Ctrl+Z</div>
+        <div class="dd-item" data-action="edit-redo">Redo ⇧⌘/Ctrl+⇧Z</div>
         <div class="dd-item" data-action="edit-copy">Copy ⌘/Ctrl+C</div>
         <div class="dd-item" data-action="edit-paste">Paste ⌘/Ctrl+V</div>
       </div>
@@ -192,26 +142,25 @@ body.dark{ --bg: #000; --fg:#fff; background:var(--bg); color:var(--fg); }
 <textarea id="editor" spellcheck="false" autofocus></textarea>
 <div id="preview" role="region" aria-label="Preview area"></div>
 
-<!-- markdown-it from CDN (used for full Gruber-like rendering) -->
-<script src="https://cdn.jsdelivr.net/npm/markdown-it@13.0.1/dist/markdown-it.min.js"></script>
+<!-- Showdown (used because it's explicitly based on Gruber's original implementation) -->
+<script src="https://cdn.jsdelivr.net/npm/showdown@1.9.1/dist/showdown.min.js"></script>
 
 <script>
 /* ===========================
-   Core app logic
-   - click-to-open menus
-   - IndexedDB file storage
+   App logic
+   - menus open on click (System 1)
+   - full Gruber-compatible Markdown via Showdown
+   - IndexedDB storage (create/open/save/list)
    - autosave (debounced)
-   - hotkeys (Mac & PC)
-   - preview with markdown-it
-   - dark mode & font toggle persistence
+   - hotkeys for Mac (Cmd) and PC (Ctrl)
+   - inverted menu highlight (System 1)
    =========================== */
 
-/* ---------- utils ---------- */
+/* ---------- small helpers ---------- */
 const isMac = navigator.platform.toUpperCase().includes('MAC');
-const modName = isMac ? 'metaKey' : 'ctrlKey';
-function modPressed(e) { return isMac ? e.metaKey : e.ctrlKey; }
-function $all(sel, root=document) { return Array.from(root.querySelectorAll(sel)); }
-function $ (sel) { return document.querySelector(sel); }
+function modPressed(e){ return isMac ? e.metaKey : e.ctrlKey; }
+function $all(sel, root=document){ return Array.from(root.querySelectorAll(sel)); }
+function $(sel){ return document.querySelector(sel); }
 
 /* ---------- DOM ---------- */
 const editor = $('#editor');
@@ -219,38 +168,43 @@ const preview = $('#preview');
 const saveDot = $('#save-dot');
 const statusText = $('#status-text');
 
-/* ---------- Menu open/close behavior (click only) ---------- */
+/* ---------- menu click behavior ---------- */
 $all('.menu').forEach(menu => {
   menu.addEventListener('click', (e) => {
     e.stopPropagation();
-    // toggle this menu, close others
-    const isOpen = menu.classList.contains('open');
+    const wasOpen = menu.classList.contains('open');
     closeAllMenus();
-    if(!isOpen) {
+    if(!wasOpen) {
       menu.classList.add('open');
-      // if file menu, refresh list
-      if(menu.getAttribute('data-menu') === 'File') refreshFileListInMenu();
+      if(menu.dataset.menu === 'File') refreshFileListInMenu();
     }
   });
-  // allow keyboard enter to open menu
+  // keyboard open via Enter
   menu.addEventListener('keydown', (e) => {
     if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); menu.click(); }
   });
 });
-document.addEventListener('click', (e) => closeAllMenus());
-function closeAllMenus() { $all('.menu.open').forEach(m => m.classList.remove('open')); }
+document.addEventListener('click', () => closeAllMenus());
+function closeAllMenus(){ $all('.menu.open').forEach(m=>m.classList.remove('open')); }
 
-/* ---------- markdown-it renderer (full Gruber-like) ---------- */
-const md = window.markdownit({ html: false, linkify: true, typographer: true });
+/* ---------- Showdown converter (Gruber-like) ---------- */
+const converter = new showdown.Converter({
+  simplifiedAutoLink: true,
+  literalMidWordUnderscores: true,
+  excludeTrailingPunctuationFromURLs: true,
+  strikethrough: true,
+  tables: true, // optional extras; Showdown includes some extras, but conversion follows original closely
+  ghCodeBlocks: true
+});
 
 /* ---------- IndexedDB wrapper ---------- */
 const DB_NAME = 'system1-md';
 const STORE = 'files';
 let dbPromise = null;
-function openDB() {
+function openDB(){
   if(dbPromise) return dbPromise;
   dbPromise = new Promise((resolve,reject)=>{
-    const r = indexedDB.open(DB_NAME,1);
+    const r = indexedDB.open(DB_NAME, 1);
     r.onupgradeneeded = e => {
       const db = e.target.result;
       if(!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: 'name' });
@@ -260,16 +214,16 @@ function openDB() {
   });
   return dbPromise;
 }
-async function saveFileToDB(name, content) {
+async function saveToDB(name, content){
   const db = await openDB();
   return new Promise((res,rej)=>{
-    const tx = db.transaction(STORE, 'readwrite');
+    const tx = db.transaction(STORE,'readwrite');
     tx.objectStore(STORE).put({ name, content, updated: Date.now() });
     tx.oncomplete = ()=> res();
     tx.onerror = ()=> rej(tx.error);
   });
 }
-async function readFileFromDB(name){
+async function readFromDB(name){
   const db = await openDB();
   return new Promise((res,rej)=>{
     const tx = db.transaction(STORE,'readonly');
@@ -278,19 +232,19 @@ async function readFileFromDB(name){
     req.onerror = ()=> rej(req.error);
   });
 }
-async function listFilesFromDB(){
+async function listFromDB(){
   const db = await openDB();
   return new Promise((res,rej)=>{
     const tx = db.transaction(STORE,'readonly');
     const out = [];
-    const req = tx.objectStore(STORE).openCursor();
-    req.onsuccess = e => {
+    const cursorReq = tx.objectStore(STORE).openCursor();
+    cursorReq.onsuccess = e => {
       const cur = e.target.result;
       if(!cur) { res(out); return; }
       out.push({ name: cur.value.name, updated: cur.value.updated });
       cur.continue();
     };
-    req.onerror = ()=> rej(req.error);
+    cursorReq.onerror = ()=> rej(cursorReq.error);
   });
 }
 
@@ -300,40 +254,53 @@ let autosaveTimer = null;
 const AUTOSAVE_DELAY = 700;
 let unsaved = false;
 
-/* ---------- save indicator helpers ---------- */
-function setSaveState(state) {
-  // state: 'saved', 'saving', 'error', 'unsaved'
+/* ---------- Save indicator ---------- */
+function setSaveState(state){
+  // states: ready, saving, saved, unsaved, error
   switch(state){
-    case 'saving': saveDot.style.background = 'transparent'; saveDot.style.borderColor = getComputedStyle(document.body).color; statusText.textContent = 'Saving...'; break;
-    case 'saved': saveDot.style.background = getComputedStyle(document.body).color; statusText.textContent = 'Saved'; break;
-    case 'unsaved': saveDot.style.background = 'transparent'; statusText.textContent = 'Unsaved'; break;
-    case 'error': saveDot.style.background = 'transparent'; statusText.textContent = 'Save error'; break;
-    default: saveDot.style.background = 'transparent'; statusText.textContent = 'Ready';
+    case 'saving':
+      saveDot.style.background = 'transparent';
+      saveDot.style.borderColor = getComputedStyle(document.body).color;
+      statusText.textContent = 'Saving...';
+      break;
+    case 'saved':
+      saveDot.style.background = getComputedStyle(document.body).color;
+      statusText.textContent = 'Saved';
+      break;
+    case 'unsaved':
+      saveDot.style.background = 'transparent';
+      statusText.textContent = 'Unsaved';
+      break;
+    case 'error':
+      saveDot.style.background = 'transparent';
+      statusText.textContent = 'Save error';
+      break;
+    default:
+      saveDot.style.background = 'transparent';
+      statusText.textContent = 'Ready';
   }
 }
 
-/* ---------- autosave (debounced) ---------- */
+/* ---------- Autosave (debounced) ---------- */
 function scheduleAutosave(){
   setSaveState('saving');
   clearTimeout(autosaveTimer);
   autosaveTimer = setTimeout(async ()=>{
-    try{
-      if(!currentFile) currentFile = await generateUntitled();
-      await saveFileToDB(currentFile, editor.value);
+    try {
+      if(!currentFile) currentFile = await pickUntitled();
+      await saveToDB(currentFile, editor.value);
       localStorage.setItem('lastFile', currentFile);
       unsaved = false;
       setSaveState('saved');
       refreshFileListInMenu();
     } catch(err){
-      console.error('save err', err);
+      console.error(err);
       setSaveState('error');
     }
   }, AUTOSAVE_DELAY);
 }
-
-/* pick Untitled N */
-async function generateUntitled(){
-  const files = await listFilesFromDB();
+async function pickUntitled(){
+  const files = await listFromDB();
   let i=1;
   while(true){
     const name = `Untitled ${i}.md`;
@@ -342,15 +309,7 @@ async function generateUntitled(){
   }
 }
 
-/* ---------- editor change tracking & undo ---------- */
-editor.addEventListener('input', () => {
-  unsaved = true;
-  setSaveState('unsaved');
-  recordHistory(); // undo stack
-  scheduleAutosave();
-});
-
-/* ---------- simple undo/redo stacks ---------- */
+/* ---------- undo/redo simple stacks ---------- */
 const undoStack = [];
 const redoStack = [];
 let lastSnapshot = editor.value;
@@ -365,111 +324,13 @@ function recordHistory(){
 function doUndo(){ if(!undoStack.length) return; redoStack.push(editor.value); editor.value = undoStack.pop(); editor.dispatchEvent(new Event('input')); }
 function doRedo(){ if(!redoStack.length) return; undoStack.push(editor.value); editor.value = redoStack.pop(); editor.dispatchEvent(new Event('input')); }
 
-/* ---------- menu actions map ---------- */
-const ACTIONS = {
-  'file-new': async () => {
-    const name = prompt('New filename (include .md):', 'Untitled.md');
-    if(!name) return;
-    currentFile = name;
-    editor.value = '';
-    recordHistory();
-    scheduleAutosave();
-  },
-  'file-open': async () => {
-    // open File menu UI (the file list items handle actual open)
-    const fileMenu = document.querySelector('.menu[data-menu="File"]');
-    closeAllMenus();
-    fileMenu.classList.add('open');
-    await refreshFileListInMenu();
-  },
-  'file-save': async () => {
-    if(!currentFile) currentFile = await generateUntitled();
-    setSaveState('saving');
-    try {
-      await saveFileToDB(currentFile, editor.value);
-      localStorage.setItem('lastFile', currentFile);
-      setSaveState('saved');
-      refreshFileListInMenu();
-    } catch(err){ setSaveState('error'); console.error(err); }
-  },
-  'edit-undo': ()=> doUndo(),
-  'edit-redo': ()=> doRedo(),
-  'edit-copy': async ()=> { try{ await navigator.clipboard.writeText(getSelectionText()); }catch(e){ fallbackCopy(getSelectionText()); } },
-  'edit-paste': async ()=> { try{ const t = await navigator.clipboard.readText(); insertTextAtCursor(t); }catch(e){/* ignore */} },
-  'fmt-bold': ()=> wrapSelection('**','**'),
-  'fmt-italic': ()=> wrapSelection('*','*'),
-  'fmt-bullets': ()=> prefixLines('- '),
-  'fmt-h1': ()=> prefixLines('# '),
-  'fmt-h2': ()=> prefixLines('## '),
-  'fmt-link': ()=> insertLinkPrompt(),
-  'view-togglePreview': ()=> togglePreview(),
-  'view-toggleDark': ()=> toggleDarkMode(),
-  'view-toggleFont': ()=> toggleFont()
-};
-
-/* wire dropdown clicks */
-document.addEventListener('click', (e)=>{
-  const act = e.target.closest('.dd-item');
-  if(!act) return;
-  // if this dd-item is a dynamic file entry it will not have data-action; handle below
-  const dataAction = act.getAttribute('data-action');
-  if(dataAction && ACTIONS[dataAction]) {
-    ACTIONS[dataAction]();
-    closeAllMenus();
-  }
-});
-
-/* ---------- file list in File menu (dynamic) ---------- */
-async function refreshFileListInMenu(){
-  const placeholder = $('#file-list-placeholder');
-  // remove existing dynamic items first
-  const dd = placeholder.parentElement;
-  dd.querySelectorAll('.dynamic-file').forEach(n=>n.remove());
-  try {
-    const files = await listFilesFromDB();
-    if(files.length === 0) {
-      placeholder.style.display = 'block';
-    } else {
-      placeholder.style.display = 'none';
-      files.sort((a,b)=> (b.updated||0) - (a.updated||0));
-      files.forEach(f=>{
-        const div = document.createElement('div');
-        div.className = 'dd-item dynamic-file';
-        div.textContent = f.name;
-        div.title = f.name;
-        div.addEventListener('click', async ()=> {
-          currentFile = f.name;
-          const content = await readFileFromDB(f.name);
-          editor.value = content || '';
-          lastSnapshot = editor.value;
-          editor.dispatchEvent(new Event('input'));
-          closeAllMenus();
-          statusText.textContent = 'Loaded';
-          setSaveState('saved');
-          localStorage.setItem('lastFile', currentFile);
-        });
-        dd.appendChild(div);
-      });
-    }
-  } catch(err){
-    console.error('file list err', err);
-  }
-}
-
-/* ---------- editor helpers ---------- */
-function getSelectionText(){
-  return editor.value.substring(editor.selectionStart, editor.selectionEnd);
-}
-function insertTextAtCursor(text) {
-  const s = editor.selectionStart, e = editor.selectionEnd;
-  editor.setRangeText(text, s, e, 'end');
-  editor.dispatchEvent(new Event('input'));
-}
+/* ---------- formatting helpers ---------- */
 function wrapSelection(open, close=null){
   if(close === null) close = open;
   const s = editor.selectionStart, e = editor.selectionEnd;
   const sel = editor.value.slice(s,e);
   editor.setRangeText(open + sel + close, s, e, 'end');
+  editor.focus();
   editor.dispatchEvent(new Event('input'));
 }
 function prefixLines(prefix){
@@ -491,16 +352,16 @@ function insertLinkPrompt(){
   editor.dispatchEvent(new Event('input'));
 }
 
-/* ---------- preview toggle ---------- */
+/* ---------- Preview toggle (inline) ---------- */
 function togglePreview(){
   if(preview.classList.contains('visible')){
     preview.classList.remove('visible');
     editor.classList.add('visible');
     statusText.textContent = 'Edit';
   } else {
-    // render with markdown-it
     try {
-      preview.innerHTML = md.render(editor.value);
+      // full Gruber-like rendering via Showdown
+      preview.innerHTML = converter.makeHtml(editor.value);
     } catch(e) {
       preview.innerHTML = '<pre>' + escapeHtml(editor.value) + '</pre>';
     }
@@ -511,106 +372,137 @@ function togglePreview(){
 }
 function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-/* ---------- dark mode & font toggle (persisted) ---------- */
-function applyThemeFromStorage(){
-  const dark = localStorage.getItem('sys1-dark');
-  if(dark === '1') document.body.classList.add('dark');
-  else document.body.classList.remove('dark');
-}
-function toggleDarkMode(){
-  document.body.classList.toggle('dark');
-  localStorage.setItem('sys1-dark', document.body.classList.contains('dark') ? '1':'0');
-}
-let fontState = localStorage.getItem('sys1-font') || 'default';
-function applyFontFromStorage(){
-  const font = fontState === 'courier' ? 'var(--font-mono)' : 'var(--font-ui)';
-  editor.style.fontFamily = font.replace('var(--','').replace(')','') ? font : font; // keeps var usage
-}
-function toggleFont(){
-  fontState = fontState === 'default' ? 'courier' : 'default';
-  localStorage.setItem('sys1-font', fontState);
-  applyFontFromStorage();
-}
+/* ---------- theme & font toggles (persisted) ---------- */
+function applyThemeFromStorage(){ if(localStorage.getItem('sys1-dark') === '1') document.body.classList.add('dark'); else document.body.classList.remove('dark'); }
+function toggleDark(){ document.body.classList.toggle('dark'); localStorage.setItem('sys1-dark', document.body.classList.contains('dark') ? '1':'0'); }
+let fontState = localStorage.getItem('sys1-font') || 'chicago';
+function applyFontFromStorage(){ editor.style.fontFamily = fontState === 'courier' ? 'var(--mono-font)' : 'var(--ui-font)'; }
+function toggleFont(){ fontState = fontState === 'chicago' ? 'courier' : 'chicago'; localStorage.setItem('sys1-font', fontState); applyFontFromStorage(); }
 
-/* ---------- keyboard shortcuts (Mac & PC) ---------- */
-document.addEventListener('keydown', (e) => {
-  // ignore if menus open and user is typing? We'll still allow hotkeys globally
-  const mod = modPressed(e);
-  // New
-  if(mod && !e.shiftKey && e.key.toLowerCase() === 'n'){ e.preventDefault(); ACTIONS['file-new'](); return; }
-  // Open - open File menu to pick
-  if(mod && !e.shiftKey && e.key.toLowerCase() === 'o'){ e.preventDefault(); ACTIONS['file-open'](); return; }
-  // Save
-  if(mod && !e.shiftKey && e.key.toLowerCase() === 's'){ e.preventDefault(); ACTIONS['file-save'](); return; }
-  // Undo / Redo
-  if(mod && !e.shiftKey && e.key.toLowerCase() === 'z'){ e.preventDefault(); ACTIONS['edit-undo'](); return; }
-  if(mod && e.shiftKey && e.key.toLowerCase() === 'z'){ e.preventDefault(); ACTIONS['edit-redo'](); return; }
-  // Copy / Paste
-  if(mod && !e.shiftKey && e.key.toLowerCase() === 'c'){ /* allow native copy */ return; }
-  if(mod && !e.shiftKey && e.key.toLowerCase() === 'v'){ /* allow native paste */ return; }
-  // Bold / Italic / Link
-  if(mod && !e.shiftKey && e.key.toLowerCase() === 'b'){ e.preventDefault(); ACTIONS['fmt-bold'](); return; }
-  if(mod && !e.shiftKey && e.key.toLowerCase() === 'i'){ e.preventDefault(); ACTIONS['fmt-italic'](); return; }
-  if(mod && !e.shiftKey && e.key.toLowerCase() === 'k'){ e.preventDefault(); ACTIONS['fmt-link'](); return; }
-  // bullets (Shift+8 with mod)
-  if(mod && e.shiftKey && e.key === '8'){ e.preventDefault(); ACTIONS['fmt-bullets'](); return; }
-  if(mod && e.shiftKey && e.key === '1'){ e.preventDefault(); ACTIONS['fmt-h1'](); return; }
-  if(mod && e.shiftKey && e.key === '2'){ e.preventDefault(); ACTIONS['fmt-h2'](); return; }
-  // preview, dark, font toggles (Shift+P, Shift+D, Shift+F with mod)
-  if(mod && e.shiftKey && e.key.toLowerCase() === 'p'){ e.preventDefault(); ACTIONS['view-togglePreview'](); return; }
-  if(mod && e.shiftKey && e.key.toLowerCase() === 'd'){ e.preventDefault(); ACTIONS['view-toggleDark'](); return; }
-  if(mod && e.shiftKey && e.key.toLowerCase() === 'f'){ e.preventDefault(); ACTIONS['view-toggleFont'](); return; }
+/* ---------- ACTION mapping ---------- */
+const ACTIONS = {
+  'file-new': async ()=>{ const name = prompt('New filename (include .md):','Untitled.md'); if(!name) return; currentFile = name; editor.value=''; recordHistory(); scheduleAutosave(); },
+  'file-open': async ()=>{ const fileMenu = document.querySelector('.menu[data-menu="File"]'); closeAllMenus(); fileMenu.classList.add('open'); await refreshFileListInMenu(); },
+  'file-save': async ()=>{ if(!currentFile) currentFile = await pickUntitled(); setSaveState('saving'); try{ await saveToDB(currentFile, editor.value); localStorage.setItem('lastFile', currentFile); setSaveState('saved'); refreshFileListInMenu(); }catch(e){ setSaveState('error'); } },
+  'edit-undo': ()=>doUndo(),
+  'edit-redo': ()=>doRedo(),
+  'edit-copy': async ()=>{ try{ await navigator.clipboard.writeText(getSelectionText()); }catch(e){ fallbackCopy(getSelectionText()); } },
+  'edit-paste': async ()=>{ try{ const t = await navigator.clipboard.readText(); insertTextAtCursor(t); }catch(e){} },
+  'fmt-bold': ()=>wrapSelection('**','**'),
+  'fmt-italic': ()=>wrapSelection('*','*'),
+  'fmt-bullets': ()=>prefixLines('- '),
+  'fmt-h1': ()=>prefixLines('# '),
+  'fmt-h2': ()=>prefixLines('## '),
+  'fmt-link': ()=>insertLinkPrompt(),
+  'view-togglePreview': ()=>togglePreview(),
+  'view-toggleDark': ()=>toggleDark(),
+  'view-toggleFont': ()=>toggleFont()
+};
+
+/* wire dropdown clicks to actions */
+document.addEventListener('click', (e) => {
+  const target = e.target.closest('.dd-item');
+  if(!target) return;
+  const dataAction = target.getAttribute('data-action');
+  if(dataAction && ACTIONS[dataAction]) {
+    ACTIONS[dataAction]();
+    closeAllMenus();
+  }
 });
 
-/* ---------- initial load: restore last file, theme, font ---------- */
-(async function init(){
-  applyThemeFromStorage();
-  applyFontFromStorage();
+/* ---------- dynamic file list in File menu ---------- */
+async function refreshFileListInMenu(){
+  const placeholder = $('#file-list-placeholder');
+  const dd = placeholder.parentElement;
+  // remove existing dynamic items
+  dd.querySelectorAll('.dynamic-file').forEach(n=>n.remove());
   try {
+    const files = await listFromDB();
+    if(files.length === 0) { placeholder.style.display = 'block'; }
+    else {
+      placeholder.style.display = 'none';
+      files.sort((a,b)=> (b.updated||0)-(a.updated||0));
+      files.forEach(f => {
+        const div = document.createElement('div');
+        div.className = 'dd-item dynamic-file';
+        div.textContent = f.name;
+        div.title = f.name;
+        div.addEventListener('click', async ()=> {
+          currentFile = f.name;
+          const content = await readFromDB(f.name);
+          editor.value = content || '';
+          lastSnapshot = editor.value;
+          editor.dispatchEvent(new Event('input'));
+          closeAllMenus();
+          setSaveState('saved');
+          localStorage.setItem('lastFile', currentFile);
+        });
+        dd.appendChild(div);
+      });
+    }
+  } catch(err){ console.error('file list err', err); }
+}
+
+/* ---------- editor helpers ---------- */
+function getSelectionText(){ return editor.value.substring(editor.selectionStart, editor.selectionEnd); }
+function insertTextAtCursor(text){ const s=editor.selectionStart, e=editor.selectionEnd; editor.setRangeText(text, s, e, 'end'); editor.dispatchEvent(new Event('input')); }
+
+/* ---------- keyboard shortcuts (cross platform) ---------- */
+document.addEventListener('keydown', (e) => {
+  // allow typing into editor normally; hotkeys still apply globally:
+  const mod = modPressed(e);
+  if(!mod && !e.altKey) return;
+
+  // map combos (preventDefault for handled combos)
+  const key = e.key.toLowerCase();
+  // New
+  if(mod && !e.shiftKey && key === 'n'){ e.preventDefault(); ACTIONS['file-new'](); return; }
+  if(mod && !e.shiftKey && key === 'o'){ e.preventDefault(); ACTIONS['file-open'](); return; }
+  if(mod && !e.shiftKey && key === 's'){ e.preventDefault(); ACTIONS['file-save'](); return; }
+  // Undo/Redo
+  if(mod && !e.shiftKey && key === 'z'){ e.preventDefault(); ACTIONS['edit-undo'](); return; }
+  if(mod && e.shiftKey && key === 'z'){ e.preventDefault(); ACTIONS['edit-redo'](); return; }
+  // Formatting
+  if(mod && !e.shiftKey && key === 'b'){ e.preventDefault(); ACTIONS['fmt-bold'](); return; }
+  if(mod && !e.shiftKey && key === 'i'){ e.preventDefault(); ACTIONS['fmt-italic'](); return; }
+  if(mod && !e.shiftKey && key === 'k'){ e.preventDefault(); ACTIONS['fmt-link'](); return; }
+  // bullets/h1/h2 (mod+shift+key)
+  if(mod && e.shiftKey && key === '8'){ e.preventDefault(); ACTIONS['fmt-bullets'](); return; } // ⇧8
+  if(mod && e.shiftKey && key === '1'){ e.preventDefault(); ACTIONS['fmt-h1'](); return; }
+  if(mod && e.shiftKey && key === '2'){ e.preventDefault(); ACTIONS['fmt-h2'](); return; }
+  // view toggles
+  if(mod && e.shiftKey && key === 'p'){ e.preventDefault(); ACTIONS['view-togglePreview'](); return; }
+  if(mod && e.shiftKey && key === 'd'){ e.preventDefault(); ACTIONS['view-toggleDark'](); return; }
+  if(mod && e.shiftKey && key === 'f'){ e.preventDefault(); ACTIONS['view-toggleFont'](); return; }
+});
+
+/* ---------- editor change handling ---------- */
+editor.addEventListener('input', () => {
+  unsaved = true;
+  setSaveState('unsaved');
+  recordHistory();
+  scheduleAutosave();
+});
+
+/* ---------- initial load ---------- */
+(async function startup(){
+  try {
+    applyThemeFromStorage();
+    applyFontFromStorage();
     const last = localStorage.getItem('lastFile');
     if(last) {
       currentFile = last;
-      const content = await readFileFromDB(last);
+      const content = await readFromDB(last);
       if(content !== null) {
         editor.value = content;
         lastSnapshot = editor.value;
         setSaveState('saved');
       }
     } else {
-      // create a default untitled name but do not save immediately until user types
-      currentFile = null;
       setSaveState('saved');
     }
-    // refresh file list for menu on first open
     refreshFileListInMenu();
-  } catch(e) { console.error(e); }
-})();
-
-/* ---------- helper functions ---------- */
-function fallbackCopy(text){
-  const ta = document.createElement('textarea');
-  ta.value = text;
-  document.body.appendChild(ta);
-  ta.select();
-  try { document.execCommand('copy'); } catch(e){}
-  ta.remove();
-}
-
-/* ---------- helpers for insert/paste */ 
-// (we used clipboard.readText/writeText where available above)
-
-/* ---------- helper: close menus on escape ---------- */
-document.addEventListener('keydown', (e) => {
-  if(e.key === 'Escape') closeAllMenus();
-});
-
-/* ---------- click outside to close menus handled earlier by document click ---------- */
-
-/* ---------- service worker register ---------- */
-if('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch(()=>{/* ignore registration failures for now */});
-}
-</script>
-
-</body>
-</html>
+  } catch(e){
+    console.error(e);
+  }
+})
