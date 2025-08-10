@@ -143,6 +143,29 @@ code, pre { font-family: var(--font-alt); }
 /* force sharp pixel rendering on retina as best effort */
 * { image-rendering: pixelated; -webkit-font-smoothing: none; }
 </style>
+
+@font-face {
+  font-family: 'Courier Prime Local';
+  src: url('./courier-prime.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Chicago Local';
+  src: url('./chicago.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* then use these in your existing CSS variables */
+:root {
+  --font-default: 'Chicago Local', 'Chicago', 'Monaco', monospace;
+  --font-alt: 'Courier Prime Local', 'Courier Prime', monospace;
+}
+
+   
 </head>
 <body>
   <!-- Menubar -->
