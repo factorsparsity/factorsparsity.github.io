@@ -1,14 +1,24 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>System-1 Markdown — Fixed</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>System-1 Markdown — Minimal MacWrite PWA</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Sys1 MD">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+<!-- Inline SVG icon used as favicon / apple-touch-icon (data URL). For best iOS results also add a PNG in manifest.json -->
+<link rel="icon" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192"><rect width="100%" height="100%" fill="%23ffffff"/><text x="50%" y="55%" font-size="110" font-family="monospace" text-anchor="middle" fill="%23000000">✦</text></svg>'>
+<link rel="apple-touch-icon" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192"><rect width="100%" height="100%" fill="%23ffffff"/><text x="50%" y="55%" font-size="110" font-family="monospace" text-anchor="middle" fill="%23000000">✦</text></svg>'>
 
 <style>
-/* ===== Fonts (local .woff2 expected) ===== */
+/* ============================
+   Fonts (local .woff2 — Option A)
+   Put chicago.woff2 and courier-prime.woff2 next to index.html
+   ============================ */
 @font-face {
   font-family: "Chicago Local";
   src: url('./chicago.woff2') format('woff2');
@@ -20,115 +30,69 @@
   font-display: swap;
 }
 
-/* ===== System 1 monochrome basics ===== */
+/* ============================
+   System 1 monochrome base
+   ============================ */
 :root{
   --bg: #fff;
   --fg: #000;
-  --menubar-h: 28px;
+  --menubar-h: 30px;
   --ui-font: "Chicago Local", "Monaco", monospace;
   --mono-font: "Courier Prime Local", "Courier New", monospace;
-  --editor-font-size: 17px; /* increased per request */
+  --editor-font-size: 17px; /* larger for readability */
 }
-html,body { height:100%; margin:0; background:var(--bg); color:var(--fg); font-family:var(--ui-font); -webkit-font-smoothing:none; image-rendering: pixelated; }
-body.dark { --bg: #000; --fg: #fff; background:var(--bg); color:var(--fg); }
+html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);font-family:var(--ui-font);-webkit-font-smoothing:none;image-rendering:pixelated;}
+body.dark{ --bg:#000; --fg:#fff; background:var(--bg); color:var(--fg); }
 
 /* Menubar */
-#menubar {
-  height:var(--menubar-h);
-  display:flex;
-  align-items:center;
-  gap:8px;
-  padding:0 8px;
-  background:var(--bg);
-  color:var(--fg);
-  border-bottom:1px solid var(--fg);
-  user-select:none;
-  font-size:13px;
-  box-sizing:border-box;
-}
+#menubar{ height:var(--menubar-h); display:flex; align-items:center; gap:8px; padding:0 8px; background:var(--bg); color:var(--fg); border-bottom:1px solid var(--fg); user-select:none; font-size:15px; box-sizing:border-box; }
 #menu-left{ display:flex; gap:6px; align-items:center; }
 #menu-right{ margin-left:auto; display:flex; gap:10px; align-items:center; padding-right:6px; font-size:12px; }
 
 /* top-level menu */
-.menu { position:relative; padding:0 8px; height:var(--menubar-h); display:flex; align-items:center; cursor:default; white-space:nowrap; }
+.menu{ position:relative; padding:0 8px; height:var(--menubar-h); display:flex; align-items:center; cursor:default; white-space:nowrap; }
 
-/* dropdown (hidden until .open) */
-.dropdown {
-  position:absolute;
-  top: calc(var(--menubar-h) + 2px);
-  left:0;
-  border:1px solid var(--fg);
-  background:var(--bg);
-  color:var(--fg);
-  display:none;
-  flex-direction:column;
-  z-index:60;
-  min-width:200px;
-  box-sizing:border-box;
-  white-space:nowrap; /* ensure single-line */
-  max-height: calc(100vh - 60px);
-  overflow:auto;
-}
-.menu.open > .dropdown { display:flex; }
+/* dropdown (hidden unless .open) */
+.dropdown{ position:absolute; top:calc(var(--menubar-h) + 2px); left:0; border:1px solid var(--fg); background:var(--bg); color:var(--fg); display:none; flex-direction:column; z-index:60; min-width:260px; box-sizing:border-box; white-space:nowrap; max-height:calc(100vh - 60px); overflow:auto; }
+.menu.open > .dropdown{ display:flex; }
 
-/* dropdown items */
-.dd-item {
-  padding:6px 10px;
-  white-space:nowrap;
-  cursor:default;
-  border-bottom:1px dotted var(--fg);
-  font-family:var(--ui-font);
-  font-size:13px;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  max-width:420px;
-}
-.dd-item:last-child { border-bottom:none; }
+/* dropdown items — single line enforced */
+.dd-item{ padding:6px 10px; white-space:nowrap; cursor:default; border-bottom:1px dotted var(--fg); font-family:var(--ui-font); font-size:14px; overflow:hidden; text-overflow:ellipsis; max-width:520px; }
+.dd-item:last-child{ border-bottom:none; }
 
-/* System 1 highlight: inverted */
-.dd-item.highlight, .dd-item:hover {
-  background:var(--fg);
-  color:var(--bg);
-}
+/* inverted System 1 highlight */
+.dd-item.highlight, .dd-item:hover { background:var(--fg); color:var(--bg); }
 
 /* status & save-dot */
-#status { display:flex; gap:8px; align-items:center; color:var(--fg); font-size:12px; }
-#save-dot { width:10px; height:10px; border:1px solid var(--fg); display:inline-block; }
+#status{ display:flex; gap:8px; align-items:center; color:var(--fg); font-size:12px; }
+#save-dot{ width:10px; height:10px; border:1px solid var(--fg); display:inline-block; }
 
 /* Editor & Preview */
-#editor, #preview {
+#editor, #preview{
   box-sizing:border-box;
   width:100%;
-  height: calc(100vh - var(--menubar-h));
-  margin:0;
-  padding:18px;
-  font-size:var(--editor-font-size);
-  line-height:1.3;
-  background:var(--bg);
-  color:var(--fg);
-  outline:none;
-  border:none;
-  -webkit-appearance:none;
-  overflow:auto;
-  white-space:pre-wrap;
-  word-wrap:break-word;
+  height:calc(100vh - var(--menubar-h));
+  margin:0; padding:18px;
+  font-size:var(--editor-font-size); line-height:1.3;
+  background:var(--bg); color:var(--fg); outline:none; border:none; -webkit-appearance:none; overflow:auto;
+  white-space:pre-wrap; word-wrap:break-word;
 }
-#editor { font-family:var(--ui-font); }
-#preview { display:none; font-family:var(--ui-font); }
+#editor{ font-family:var(--mono-font); }
+#preview{ display:none; font-family:var(--ui-font); }
 
 /* visible helper */
-.visible { display:block !important; }
+.visible{ display:block !important; }
 
-/* keep crisp rendering */
-* { image-rendering: pixelated; -webkit-font-smoothing: none; }
+/* crisp rendering */
+*{ image-rendering:pixelated; -webkit-font-smoothing:none; }
 </style>
 </head>
 <body>
 
-<!-- Menubar -->
+<!-- Menubar (minimal System 1 style) -->
 <div id="menubar">
   <div id="menu-left">
-    <div style="padding-right:8px;font-weight:bold;"></div>
+    <div style="padding-right:8px;font-weight:bold;">✦</div>
 
     <div class="menu" data-menu="File" tabindex="0">File
       <div class="dropdown" data-menu-list="File">
@@ -146,6 +110,7 @@ body.dark { --bg: #000; --fg: #fff; background:var(--bg); color:var(--fg); }
         <div class="dd-item" data-action="edit-redo">Redo ⇧⌘/Ctrl+⇧Z</div>
         <div class="dd-item" data-action="edit-copy">Copy ⌘/Ctrl+C</div>
         <div class="dd-item" data-action="edit-paste">Paste ⌘/Ctrl+V</div>
+        <div class="dd-item" data-action="edit-selectAll">Select All ⌘/Ctrl+A</div>
       </div>
     </div>
 
@@ -153,9 +118,14 @@ body.dark { --bg: #000; --fg: #fff; background:var(--bg); color:var(--fg); }
       <div class="dropdown" data-menu-list="Format">
         <div class="dd-item" data-action="fmt-bold">Bold ⌘/Ctrl+B</div>
         <div class="dd-item" data-action="fmt-italic">Italic ⌘/Ctrl+I</div>
-        <div class="dd-item" data-action="fmt-bullets">Bullets ⇧⌘/Ctrl+⇧8</div>
+        <div class="dd-item" data-action="fmt-inline-code">Inline Code ⌘/Ctrl+`</div>
+        <div class="dd-item" data-action="fmt-code-block">Code Block ⇧⌘/Ctrl+⇧`</div>
+        <div class="dd-item" data-action="fmt-blockquote">Blockquote ⇧⌘/Ctrl+⇧Q</div>
+        <div class="dd-item" data-action="fmt-bullets">Unordered List ⇧⌘/Ctrl+⇧8</div>
+        <div class="dd-item" data-action="fmt-olist">Ordered List ⇧⌘/Ctrl+⇧7</div>
         <div class="dd-item" data-action="fmt-h1">H1 ⇧⌘/Ctrl+⇧1</div>
         <div class="dd-item" data-action="fmt-h2">H2 ⇧⌘/Ctrl+⇧2</div>
+        <div class="dd-item" data-action="fmt-h3">H3 ⇧⌘/Ctrl+⇧3</div>
         <div class="dd-item" data-action="fmt-link">Link ⌘/Ctrl+K</div>
       </div>
     </div>
@@ -177,27 +147,33 @@ body.dark { --bg: #000; --fg: #fff; background:var(--bg); color:var(--fg); }
   </div>
 </div>
 
-<!-- Editor + Preview -->
+<!-- Editor & Preview (no new windows) -->
 <textarea id="editor" spellcheck="false" autofocus></textarea>
 <div id="preview" role="region" aria-label="Preview area"></div>
 
-<!-- Use Showdown for Gruber Markdown -->
+<!-- Showdown (Gruber) -->
 <script src="https://cdn.jsdelivr.net/npm/showdown@1.9.1/dist/showdown.min.js"></script>
 
 <script>
-/* ---------- small helpers ---------- */
+/* ---------------------------
+   Utilities
+   --------------------------- */
 const isMac = navigator.platform.toUpperCase().includes('MAC');
-function modPressed(e) { return e.metaKey || e.ctrlKey; } // work on Mac (meta) and PC (ctrl)
-function $all(sel, root=document) { return Array.from(root.querySelectorAll(sel)); }
-function $(sel) { return document.querySelector(sel); }
+function modPressed(e){ return isMac ? e.metaKey : e.ctrlKey; }
+function $all(sel, root=document){ return Array.from(root.querySelectorAll(sel)); }
+function $(sel){ return document.querySelector(sel); }
 
-/* ---------- DOM refs ---------- */
+/* ---------------------------
+   DOM refs
+   --------------------------- */
 const editor = $('#editor');
 const preview = $('#preview');
 const saveDot = $('#save-dot');
 const statusText = $('#status-text');
 
-/* ---------- Menu click behavior (click-only) ---------- */
+/* ---------------------------
+   Menu click only (System 1)
+   --------------------------- */
 $all('.menu').forEach(menu => {
   menu.addEventListener('click', (ev) => {
     ev.stopPropagation();
@@ -208,14 +184,14 @@ $all('.menu').forEach(menu => {
       if(menu.dataset.menu === 'File') refreshFileListInMenu();
     }
   });
-  menu.addEventListener('keydown', e => {
-    if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); menu.click(); }
-  });
+  menu.addEventListener('keydown', e => { if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); menu.click(); } });
 });
 document.addEventListener('click', () => closeAllMenus());
-function closeAllMenus() { $all('.menu.open').forEach(m => m.classList.remove('open')); }
+function closeAllMenus(){ $all('.menu.open').forEach(m => m.classList.remove('open')); }
 
-/* ---------- Showdown (Gruber) ---------- */
+/* ---------------------------
+   Showdown converter (Gruber)
+   --------------------------- */
 const converter = new showdown.Converter({
   simplifiedAutoLink: true,
   literalMidWordUnderscores: true,
@@ -225,7 +201,9 @@ const converter = new showdown.Converter({
   ghCodeBlocks: true
 });
 
-/* ---------- IndexedDB wrapper ---------- */
+/* ---------------------------
+   IndexedDB wrapper
+   --------------------------- */
 const DB_NAME = 'system1-md';
 const STORE = 'files';
 let dbPromise = null;
@@ -244,8 +222,8 @@ function openDB(){
 }
 async function saveToDB(name, content){
   const db = await openDB();
-  return new Promise((res, rej) => {
-    const tx = db.transaction(STORE, 'readwrite');
+  return new Promise((res,rej)=>{
+    const tx = db.transaction(STORE,'readwrite');
     tx.objectStore(STORE).put({ name, content, updated: Date.now() });
     tx.oncomplete = ()=> res();
     tx.onerror = ()=> rej(tx.error);
@@ -253,8 +231,8 @@ async function saveToDB(name, content){
 }
 async function readFromDB(name){
   const db = await openDB();
-  return new Promise((res, rej) => {
-    const tx = db.transaction(STORE, 'readonly');
+  return new Promise((res,rej)=>{
+    const tx = db.transaction(STORE,'readonly');
     const req = tx.objectStore(STORE).get(name);
     req.onsuccess = ()=> res(req.result ? req.result.content : null);
     req.onerror = ()=> rej(req.error);
@@ -262,13 +240,13 @@ async function readFromDB(name){
 }
 async function listFromDB(){
   const db = await openDB();
-  return new Promise((res, rej) => {
-    const tx = db.transaction(STORE, 'readonly');
+  return new Promise((res,rej)=>{
+    const tx = db.transaction(STORE,'readonly');
     const out = [];
     const req = tx.objectStore(STORE).openCursor();
     req.onsuccess = e => {
       const cur = e.target.result;
-      if(!cur) { res(out); return; }
+      if(!cur){ res(out); return; }
       out.push({ name: cur.value.name, updated: cur.value.updated });
       cur.continue();
     };
@@ -276,71 +254,62 @@ async function listFromDB(){
   });
 }
 
-/* ---------- state ---------- */
+/* ---------------------------
+   State + save indicator
+   --------------------------- */
 let currentFile = null;
 let autosaveTimer = null;
 const AUTOSAVE_DELAY = 700;
 let unsaved = false;
 
-/* ---------- save indicator ---------- */
-function setSaveState(state) {
-  switch(state) {
-    case 'saving':
-      saveDot.style.background = 'transparent';
-      saveDot.style.borderColor = getComputedStyle(document.body).color;
-      statusText.textContent = 'Saving...';
-      break;
-    case 'saved':
-      saveDot.style.background = getComputedStyle(document.body).color;
-      statusText.textContent = 'Saved';
-      break;
-    case 'unsaved':
-      saveDot.style.background = 'transparent';
-      statusText.textContent = 'Unsaved';
-      break;
-    case 'error':
-      saveDot.style.background = 'transparent';
-      statusText.textContent = 'Save error';
-      break;
-    default:
-      saveDot.style.background = 'transparent';
-      statusText.textContent = 'Ready';
+function setSaveState(state){
+  switch(state){
+    case 'saving': saveDot.style.background = 'transparent'; saveDot.style.borderColor = getComputedStyle(document.body).color; statusText.textContent = 'Saving...'; break;
+    case 'saved': saveDot.style.background = getComputedStyle(document.body).color; statusText.textContent = 'Saved'; break;
+    case 'unsaved': saveDot.style.background = 'transparent'; statusText.textContent = 'Unsaved'; break;
+    case 'error': saveDot.style.background = 'transparent'; statusText.textContent = 'Save error'; break;
+    default: saveDot.style.background = 'transparent'; statusText.textContent = 'Ready'; break;
   }
 }
 
-/* ---------- autosave ---------- */
-function scheduleAutosave() {
+/* ---------------------------
+   Autosave (debounced)
+   --------------------------- */
+function scheduleAutosave(){
   setSaveState('saving');
   clearTimeout(autosaveTimer);
-  autosaveTimer = setTimeout(async () => {
-    try {
+  autosaveTimer = setTimeout(async ()=>{
+    try{
       if(!currentFile) currentFile = await pickUntitled();
       await saveToDB(currentFile, editor.value);
       localStorage.setItem('lastFile', currentFile);
       unsaved = false;
       setSaveState('saved');
       refreshFileListInMenu();
-    } catch (err) {
+    } catch(err){
       console.error(err);
       setSaveState('error');
     }
   }, AUTOSAVE_DELAY);
 }
+
 async function pickUntitled(){
   const files = await listFromDB();
   let i = 1;
   while(true){
     const name = `Untitled ${i}.md`;
-    if(!files.some(f=>f.name===name)) return name;
+    if(!files.some(f=>f.name === name)) return name;
     i++;
   }
 }
 
-/* ---------- simple undo/redo ---------- */
+/* ---------------------------
+   Undo / redo stacks
+   --------------------------- */
 const undoStack = [];
 const redoStack = [];
 let lastSnapshot = editor.value;
-function recordHistory() {
+function recordHistory(){
   const cur = editor.value;
   if(cur === lastSnapshot) return;
   undoStack.push(lastSnapshot);
@@ -351,8 +320,10 @@ function recordHistory() {
 function doUndo(){ if(!undoStack.length) return; redoStack.push(editor.value); editor.value = undoStack.pop(); editor.dispatchEvent(new Event('input')); }
 function doRedo(){ if(!redoStack.length) return; undoStack.push(editor.value); editor.value = redoStack.pop(); editor.dispatchEvent(new Event('input')); }
 
-/* ---------- helpers for formatting ---------- */
-function wrapSelection(open, close=null) {
+/* ---------------------------
+   Formatting helpers (all Gruber-related helpers)
+   --------------------------- */
+function wrapSelection(open, close=null){
   if(close === null) close = open;
   const s = editor.selectionStart, e = editor.selectionEnd;
   const sel = editor.value.slice(s,e);
@@ -360,7 +331,7 @@ function wrapSelection(open, close=null) {
   editor.focus();
   editor.dispatchEvent(new Event('input'));
 }
-function prefixLines(prefix) {
+function prefixLines(prefix){
   const s = editor.selectionStart, e = editor.selectionEnd;
   const before = editor.value.slice(0,s);
   const sel = editor.value.slice(s,e);
@@ -370,25 +341,48 @@ function prefixLines(prefix) {
   editor.setSelectionRange(before.length, before.length + out.length);
   editor.dispatchEvent(new Event('input'));
 }
-function insertLinkPrompt() {
+function insertLinkPrompt(){
   const s = editor.selectionStart, e = editor.selectionEnd;
-  const sel = editor.value.slice(s,e) || 'link';
+  const sel = editor.value.slice(s,e) || 'link-text';
   const url = prompt('URL (include https://)', 'https://');
   if(!url) return;
   editor.setRangeText(`[${sel}](${url})`, s, e, 'end');
   editor.dispatchEvent(new Event('input'));
 }
+function insertInlineCode(){ wrapSelection('`','`'); }
+function insertCodeBlock(){
+  const s = editor.selectionStart, e = editor.selectionEnd;
+  const sel = editor.value.slice(s,e) || '';
+  const block = '```\n' + sel + '\n```\n';
+  editor.setRangeText(block, s, e, 'end');
+  editor.dispatchEvent(new Event('input'));
+}
+function insertBlockquote(){ prefixLines('> '); }
+function insertOList(){ // ordered list (1. ...)
+  const s = editor.selectionStart, e = editor.selectionEnd;
+  const before = editor.value.slice(0,s);
+  const sel = editor.value.slice(s,e);
+  const after = editor.value.slice(e);
+  let i=1;
+  const out = sel.split('\n').map(l => (l.length? (i++) + '. ' + l : l)).join('\n');
+  editor.value = before + out + after;
+  editor.setSelectionRange(before.length, before.length + out.length);
+  editor.dispatchEvent(new Event('input'));
+}
+function insertUList(){ prefixLines('- '); }
 
-/* ---------- preview inline ---------- */
-function togglePreview() {
-  if(preview.classList.contains('visible')) {
+/* ---------------------------
+   Inline preview toggle (renders with Showdown)
+   --------------------------- */
+function togglePreview(){
+  if(preview.classList.contains('visible')){
     preview.classList.remove('visible');
     editor.classList.add('visible');
     statusText.textContent = 'Edit';
   } else {
     try {
       preview.innerHTML = converter.makeHtml(editor.value);
-    } catch(e) {
+    } catch(e){
       preview.innerHTML = '<pre>' + escapeHtml(editor.value) + '</pre>';
     }
     preview.classList.add('visible');
@@ -396,38 +390,48 @@ function togglePreview() {
     statusText.textContent = 'Preview';
   }
 }
-function escapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-/* ---------- theme & font persistence ---------- */
+/* ---------------------------
+   Theme & font toggles persisted
+   --------------------------- */
 function applyThemeFromStorage(){ if(localStorage.getItem('sys1-dark') === '1') document.body.classList.add('dark'); else document.body.classList.remove('dark'); }
 function toggleDark(){ document.body.classList.toggle('dark'); localStorage.setItem('sys1-dark', document.body.classList.contains('dark') ? '1':'0'); }
 let fontState = localStorage.getItem('sys1-font') || 'chicago';
 function applyFontFromStorage(){ editor.style.fontFamily = fontState === 'courier' ? 'var(--mono-font)' : 'var(--ui-font)'; }
 function toggleFont(){ fontState = fontState === 'chicago' ? 'courier' : 'chicago'; localStorage.setItem('sys1-font', fontState); applyFontFromStorage(); }
 
-/* ---------- ACTIONS mapping ---------- */
+/* ---------------------------
+   ACTION map (shared by clicks + shortcuts)
+   --------------------------- */
 const ACTIONS = {
-  'file-new': async () => { const name = prompt('New filename (include .md):','Untitled.md'); if(!name) return; currentFile = name; editor.value = ''; recordHistory(); scheduleAutosave(); },
-  'file-open': async () => { const fileMenu = document.querySelector('.menu[data-menu="File"]'); closeAllMenus(); fileMenu.classList.add('open'); await refreshFileListInMenu(); },
-  'file-save': async () => { if(!currentFile) currentFile = await pickUntitled(); setSaveState('saving'); try { await saveToDB(currentFile, editor.value); localStorage.setItem('lastFile', currentFile); setSaveState('saved'); refreshFileListInMenu(); } catch(e) { setSaveState('error'); } },
+  'file-new': async ()=>{ const name = prompt('New filename (include .md):','Untitled.md'); if(!name) return; currentFile = name; editor.value=''; recordHistory(); scheduleAutosave(); },
+  'file-open': async ()=>{ const fileMenu = document.querySelector('.menu[data-menu="File"]'); closeAllMenus(); fileMenu.classList.add('open'); await refreshFileListInMenu(); },
+  'file-save': async ()=>{ if(!currentFile) currentFile = await pickUntitled(); setSaveState('saving'); try{ await saveToDB(currentFile, editor.value); localStorage.setItem('lastFile', currentFile); setSaveState('saved'); refreshFileListInMenu(); }catch(e){ setSaveState('error'); } },
   'edit-undo': ()=> doUndo(),
   'edit-redo': ()=> doRedo(),
-  'edit-copy': async ()=> { try{ await navigator.clipboard.writeText(getSelectionText()); } catch(e){ fallbackCopy(getSelectionText()); } },
-  'edit-paste': async ()=> { try{ const t = await navigator.clipboard.readText(); insertTextAtCursor(t); } catch(e) {} },
+  'edit-copy': async ()=>{ try{ await navigator.clipboard.writeText(getSelectionText()); }catch(e){ fallbackCopy(getSelectionText()); } },
+  'edit-paste': async ()=>{ try{ const t = await navigator.clipboard.readText(); insertTextAtCursor(t); }catch(e){} },
+  'edit-selectAll': ()=> { editor.select(); },
   'fmt-bold': ()=> wrapSelection('**','**'),
   'fmt-italic': ()=> wrapSelection('*','*'),
-  'fmt-bullets': ()=> prefixLines('- '),
+  'fmt-inline-code': ()=> insertInlineCode(),
+  'fmt-code-block': ()=> insertCodeBlock(),
+  'fmt-blockquote': ()=> insertBlockquote(),
+  'fmt-bullets': ()=> insertUList(),
+  'fmt-olist': ()=> insertOList(),
   'fmt-h1': ()=> prefixLines('# '),
   'fmt-h2': ()=> prefixLines('## '),
+  'fmt-h3': ()=> prefixLines('### '),
   'fmt-link': ()=> insertLinkPrompt(),
   'view-togglePreview': ()=> togglePreview(),
   'view-toggleDark': ()=> toggleDark(),
   'view-toggleFont': ()=> toggleFont()
 };
 
-/* ---------- wire static dropdown dd-item clicks (they will stopPropagation) ---------- */
+/* wire menu click items that have data-action */
 $all('.dd-item[data-action]').forEach(item => {
-  item.addEventListener('click', (ev) => {
+  item.addEventListener('click', ev => {
     ev.stopPropagation();
     const action = item.dataset.action;
     if(action && ACTIONS[action]) ACTIONS[action]();
@@ -435,18 +439,20 @@ $all('.dd-item[data-action]').forEach(item => {
   });
 });
 
-/* ---------- dynamic file-list population for File menu ---------- */
+/* ---------------------------
+   dynamic File menu listing
+   --------------------------- */
 async function refreshFileListInMenu(){
   const placeholder = $('#file-list-placeholder');
   const parent = placeholder.parentElement;
-  parent.querySelectorAll('.dynamic-file').forEach(n => n.remove());
+  parent.querySelectorAll('.dynamic-file').forEach(n=>n.remove());
   try {
     const files = await listFromDB();
     if(files.length === 0) {
       placeholder.style.display = 'block';
     } else {
       placeholder.style.display = 'none';
-      files.sort((a,b) => (b.updated||0) - (a.updated||0));
+      files.sort((a,b)=> (b.updated||0) - (a.updated||0));
       files.forEach(f => {
         const div = document.createElement('div');
         div.className = 'dd-item dynamic-file';
@@ -466,47 +472,59 @@ async function refreshFileListInMenu(){
         parent.appendChild(div);
       });
     }
-  } catch(err) {
-    console.error('refresh file list error', err);
-  }
+  } catch(err){ console.error('file list err', err); }
 }
 
-/* ---------- editor selection helpers ---------- */
+/* ---------------------------
+   editor helpers and keyboard mapping
+   --------------------------- */
 function getSelectionText(){ return editor.value.substring(editor.selectionStart, editor.selectionEnd); }
-function insertTextAtCursor(text){ const s = editor.selectionStart, e = editor.selectionEnd; editor.setRangeText(text, s, e, 'end'); editor.dispatchEvent(new Event('input')); }
+function insertTextAtCursor(text){ const s=editor.selectionStart, e=editor.selectionEnd; editor.setRangeText(text, s, e, 'end'); editor.dispatchEvent(new Event('input')); }
 
-/* ---------- keyboard hotkeys (robust mapping) ---------- */
+/* keyboard shortcuts (cross-platform) */
 document.addEventListener('keydown', (e) => {
-  // ignore if user is in an input and it should take default for some combos (we still override many)
-  const mod = e.metaKey || e.ctrlKey;
+  const mod = modPressed(e);
   const shift = e.shiftKey;
   const key = e.key.toLowerCase();
 
+  // we'll only intercept combos that we implement; otherwise let browser behave
   if(!mod && !e.altKey) return;
 
-  // prevent default for combos we handle
-  if(mod && !shift && key === 'n') { e.preventDefault(); ACTIONS['file-new'](); return; }
-  if(mod && !shift && key === 'o') { e.preventDefault(); ACTIONS['file-open'](); return; }
-  if(mod && !shift && key === 's') { e.preventDefault(); ACTIONS['file-save'](); return; }
+  // file actions
+  if(mod && !shift && key === 'n'){ e.preventDefault(); ACTIONS['file-new'](); return; }
+  if(mod && !shift && key === 'o'){ e.preventDefault(); ACTIONS['file-open'](); return; }
+  if(mod && !shift && key === 's'){ e.preventDefault(); ACTIONS['file-save'](); return; }
 
-  if(mod && !shift && key === 'z') { e.preventDefault(); ACTIONS['edit-undo'](); return; }
-  if(mod && shift && key === 'z') { e.preventDefault(); ACTIONS['edit-redo'](); return; }
+  // undo/redo
+  if(mod && !shift && key === 'z'){ e.preventDefault(); ACTIONS['edit-undo'](); return; }
+  if(mod && shift && key === 'z'){ e.preventDefault(); ACTIONS['edit-redo'](); return; }
 
-  // allow native copy/paste (no preventDefault) to let browser/OS handle clipboard unless unavailable
-  if(mod && !shift && key === 'b') { e.preventDefault(); ACTIONS['fmt-bold'](); return; }
-  if(mod && !shift && key === 'i') { e.preventDefault(); ACTIONS['fmt-italic'](); return; }
-  if(mod && !shift && key === 'k') { e.preventDefault(); ACTIONS['fmt-link'](); return; }
+  // formatting
+  if(mod && !shift && key === 'b'){ e.preventDefault(); ACTIONS['fmt-bold'](); return; }
+  if(mod && !shift && key === 'i'){ e.preventDefault(); ACTIONS['fmt-italic'](); return; }
+  // inline code: mod + ` (backtick). e.key === '`'
+  if(mod && !shift && e.key === '`'){ e.preventDefault(); ACTIONS['fmt-inline-code'](); return; }
+  // code block: mod + shift + `
+  if(mod && shift && e.key === '`'){ e.preventDefault(); ACTIONS['fmt-code-block'](); return; }
+  // link
+  if(mod && !shift && key === 'k'){ e.preventDefault(); ACTIONS['fmt-link'](); return; }
+  // blockquote: mod + shift + q
+  if(mod && shift && key === 'q'){ e.preventDefault(); ACTIONS['fmt-blockquote'](); return; }
+  // lists
+  if(mod && shift && key === '8'){ e.preventDefault(); ACTIONS['fmt-bullets'](); return; } // ⇧8
+  if(mod && shift && key === '7'){ e.preventDefault(); ACTIONS['fmt-olist'](); return; } // ⇧7
+  // headings
+  if(mod && shift && key === '1'){ e.preventDefault(); ACTIONS['fmt-h1'](); return; }
+  if(mod && shift && key === '2'){ e.preventDefault(); ACTIONS['fmt-h2'](); return; }
+  if(mod && shift && key === '3'){ e.preventDefault(); ACTIONS['fmt-h3'](); return; }
 
-  if(mod && shift && key === '8') { e.preventDefault(); ACTIONS['fmt-bullets'](); return; } // ⇧8
-  if(mod && shift && key === '1') { e.preventDefault(); ACTIONS['fmt-h1'](); return; }
-  if(mod && shift && key === '2') { e.preventDefault(); ACTIONS['fmt-h2'](); return; }
-
-  if(mod && shift && key === 'p') { e.preventDefault(); ACTIONS['view-togglePreview'](); return; }
-  if(mod && shift && key === 'd') { e.preventDefault(); ACTIONS['view-toggleDark'](); return; }
-  if(mod && shift && key === 'f') { e.preventDefault(); ACTIONS['view-toggleFont'](); return; }
+  // view toggles
+  if(mod && shift && key === 'p'){ e.preventDefault(); ACTIONS['view-togglePreview'](); return; }
+  if(mod && shift && key === 'd'){ e.preventDefault(); ACTIONS['view-toggleDark'](); return; }
+  if(mod && shift && key === 'f'){ e.preventDefault(); ACTIONS['view-toggleFont'](); return; }
 });
 
-/* ---------- editor change handler -> autosave + history ---------- */
+/* editor change handling -> autosave + history */
 editor.addEventListener('input', () => {
   unsaved = true;
   setSaveState('unsaved');
@@ -514,19 +532,20 @@ editor.addEventListener('input', () => {
   scheduleAutosave();
 });
 
-/* ---------- initial load ---------- */
+/* ---------------------------
+   startup / load last file / theme / font
+   --------------------------- */
 (async function startup(){
-  try {
-    // apply persisted theme & font
+  try{
     if(localStorage.getItem('sys1-dark') === '1') document.body.classList.add('dark');
     fontState = localStorage.getItem('sys1-font') || 'chicago';
     applyFontFromStorage();
 
     const last = localStorage.getItem('lastFile');
-    if(last) {
+    if(last){
       currentFile = last;
       const content = await readFromDB(last);
-      if(content !== null) {
+      if(content !== null){
         editor.value = content;
         lastSnapshot = editor.value;
         setSaveState('saved');
@@ -535,18 +554,17 @@ editor.addEventListener('input', () => {
       setSaveState('ready');
     }
     refreshFileListInMenu();
-  } catch(err) { console.error('startup err', err); setSaveState('error'); }
+  }catch(e){ console.error('startup err', e); setSaveState('error'); }
 })();
 
-/* ---------- small fallbacks ---------- */
-function fallbackCopy(text) { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch(_){} ta.remove(); }
+/* small fallback clipboard */
+function fallbackCopy(text){ const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch(_){} ta.remove(); }
 
-/* ---------- Escape -> close menus ---------- */
+/* close menus on Escape */
 document.addEventListener('keydown', e => { if(e.key === 'Escape') closeAllMenus(); });
 
-/* ---------- register service worker (sw.js must exist) ---------- */
-if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{/*ignore*/});
+/* register service worker */
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{/* ignore */});
 </script>
-
 </body>
 </html>
