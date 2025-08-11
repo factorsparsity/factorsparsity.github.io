@@ -1,66 +1,39 @@
-const CACHE_NAME = 'macwrite-pwa-v1';
+const CACHE_NAME = 'classic-mdwriter-v1';
 const APP_SHELL = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/sw.js',
-  // Fonts
-  '/chicago.woff2',
-  '/courier-prime.woff2',
-  // External libs cached for offline
+  './',
+  './index.html',
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png',
+  './chicago.woff2',
+  './courier-prime.woff2',
   'https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js',
-  'https://cdn.jsdelivr.net/npm/idb-keyval@6/dist/idb-keyval.iife.min.js',
-  'https://cdn.jsdelivr.net/npm/showdown@1.9.1/dist/showdown.min.js'
+  'https://cdn.jsdelivr.net/npm/idb-keyval@6/dist/idb-keyval.iife.min.js'
 ];
 
-// Install - cache all app shell resources
-self.addEventListener('install', (event) => {
+self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(APP_SHELL);
-    })
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(APP_SHELL))
+      .then(self.skipWaiting())
   );
-  self.skipWaiting();
 });
 
-// Activate - clean old caches
-self.addEventListener('activate', (event) => {
+self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys
-          .filter((key) => key !== CACHE_NAME)
-          .map((key) => caches.delete(key))
-      );
-    })
+    caches.keys().then(keys =>
+      Promise.all(
+        keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
+      )
+    )
   );
   self.clients.claim();
 });
 
-// Fetch - serve cached files when offline
-self.addEventListener('fetch', (event) => {
-  const request = event.request;
-
-  // IndexedDB requests should pass through
-  if (request.url.includes('/indexeddb/')) {
-    return;
-  }
-
+self.addEventListener('fetch', event => {
   event.respondWith(
-    caches.match(request).then((cachedResponse) => {
-      if (cachedResponse) {
-        // Fetch in background to update cache
-        event.waitUntil(
-          fetch(request).then((networkResponse) => {
-            return caches.open(CACHE_NAME).then((cache) => {
-              cache.put(request, networkResponse.clone());
-              return networkResponse;
-            });
-          }).catch(() => {})
-        );
-        return cachedResponse;
-      }
-      return fetch(request).catch(() => cachedResponse);
+    caches.match(event.request).then(response => {
+      return response || fetch(event.request);
     })
   );
 });
