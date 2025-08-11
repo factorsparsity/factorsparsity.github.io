@@ -7,7 +7,7 @@ const APP_SHELL = [
   './icon-512.png',
   './chicago.woff2',
   './courier-prime.woff2',
-  'https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js',
+  'https://cdn.jsdelivr.net/npm/showdown@2/dist/showdown.min.js',
   'https://cdn.jsdelivr.net/npm/idb-keyval@6/dist/idb-keyval.iife.min.js'
 ];
 
@@ -15,7 +15,7 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(APP_SHELL))
-      .then(self.skipWaiting())
+      .then(() => self.skipWaiting())
   );
 });
 
