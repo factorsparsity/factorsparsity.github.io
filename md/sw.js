@@ -8,7 +8,6 @@ const APP_SHELL = [
   './chicago.woff2',
   './courier-prime.woff2',
   './showdown.min.js',
-  'https://cdn.jsdelivr.net/npm/showdown@2/dist/showdown.min.js',
   'https://cdn.jsdelivr.net/npm/idb-keyval@6/dist/idb-keyval.iife.min.js'
 ];
 
