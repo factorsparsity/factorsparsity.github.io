@@ -1,398 +1,499 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Gallery</title>
-    <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="https://unpkg.com/@salesforce-ux/design-system@2.22.0/assets/styles/salesforce-lightning-design-system.min.css">
-    <style>
-        body {
-            background-color: #f3f3f3;
-            padding: 2rem;
-            font-family: 'Inter', sans-serif;
-        }
-        /* Custom styling for the video player container to ensure it's responsive */
-        .video-player-container {
-            position: relative;
-            padding-bottom: 56.25%; /* 16:9 aspect ratio */
-            height: 0;
-            overflow: hidden;
-        }
-        .video-player-container video {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
-        .slds-card {
-            border: 1px solid var(--lwc-colorBorder, #dddbda);
-            border-radius: var(--lwc-borderRadiusMedium, .25rem);
-        }
-        /* Fix for weird hover effect and spacing in the list */
-        .video-list-item-link {
-            display: block;
-            margin-bottom: 0.5rem;
-            text-decoration: none;
-            color: inherit;
-            transition: background-color 0.1s ease;
-        }
-        .video-list-item-link:hover {
-            background-color: var(--slds-g-color-neutral-base-100, #f3f2f2);
-            text-decoration: none;
-            box-shadow: none;
-        }
-        .video-list-item-link .slds-media {
-            padding: 0.5rem;
-        }
-        /* Fix for the white space and text alignment */
-        .video-list-item-link .slds-media__body {
-            flex: 1;
-        }
-        .video-list-item-link .slds-media__body p {
-            margin-bottom: 0;
-        }
-        /* Responsive adjustments for better legibility on medium-sized screens */
-        @media (max-width: 768px) {
-            .slds-col.slds-medium-size_4-of-12,
-            .slds-col.slds-medium-size_8-of-12 {
-                width: 100%;
-            }
-            .video-list-item-link .slds-media__body .slds-text-heading_small {
-                /* Allow text to wrap on smaller screens */
-                white-space: normal;
-                word-wrap: break-word;
-            }
-        }
-    </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>System-1 Markdown — Minimal MacWrite PWA</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+<!-- favicon / apple-touch-icon (simple monochrome glyph) -->
+<link rel="icon" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192"><rect width="100%" height="100%" fill="%23ffffff"/><text x="50%" y="55%" font-size="110" font-family="monospace" text-anchor="middle" fill="%23000000">✦</text></svg>'>
+<link rel="apple-touch-icon" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192"><rect width="100%" height="100%" fill="%23ffffff"/><text x="50%" y="55%" font-size="110" font-family="monospace" text-anchor="middle" fill="%23000000">✦</text></svg>'>
+
+<style>
+/* -------------------------
+   Local fonts (Option A)
+   Put chicago.woff2 and courier-prime.woff2 beside index.html
+   ------------------------- */
+@font-face { font-family: "Chicago Local"; src: url('./chicago.woff2') format('woff2'); font-display: swap; }
+@font-face { font-family: "Courier Prime Local"; src: url('./courier-prime.woff2') format('woff2'); font-display: swap; }
+
+/* -------------------------
+   System-1 monochrome styling
+   ------------------------- */
+:root{
+  --bg: #fff;
+  --fg: #000;
+  --menubar-h: 30px;
+  --ui-font: "Chicago Local", "Monaco", monospace;
+  --mono-font: "Courier Prime Local", "Courier New", monospace;
+  --editor-font-size: 17px;
+}
+html,body { height:100%; margin:0; background:var(--bg); color:var(--fg); font-family:var(--ui-font); -webkit-font-smoothing:none; image-rendering:pixelated; }
+body.dark { --bg:#000; --fg:#fff; background:var(--bg); color:var(--fg); }
+
+/* menubar */
+#menubar {
+  height:var(--menubar-h);
+  display:flex; align-items:center;
+  gap:8px; padding:0 8px;
+  background:var(--bg); color:var(--fg);
+  border-bottom:1px solid var(--fg);
+  user-select:none; font-size:15px; box-sizing:border-box;
+}
+#menu-left { display:flex; gap:6px; align-items:center; }
+#menu-right { margin-left:auto; display:flex; gap:10px; align-items:center; padding-right:6px; font-size:12px; }
+
+/* top-level menu */
+.menu { position:relative; padding:0 8px; height:var(--menubar-h); display:flex; align-items:center; cursor:default; white-space:nowrap; }
+
+/* dropdown - hidden unless .open */
+.dropdown {
+  position:absolute; top:calc(var(--menubar-h) + 2px); left:0;
+  border:1px solid var(--fg); background:var(--bg); color:var(--fg);
+  display:none; flex-direction:column; z-index:60; min-width:260px;
+  box-sizing:border-box; white-space:nowrap; max-height:calc(100vh - 60px); overflow:auto;
+}
+.menu.open > .dropdown { display:flex; }
+
+/* dropdown items (single line enforced) */
+.dd-item {
+  padding:6px 10px; white-space:nowrap; cursor:default;
+  border-bottom:1px dotted var(--fg); font-family:var(--ui-font); font-size:14px;
+  overflow:hidden; text-overflow:ellipsis; max-width:520px;
+}
+.dd-item:last-child { border-bottom:none; }
+
+/* inverted System 1 highlight */
+.dd-item.highlight, .dd-item:hover { background:var(--fg); color:var(--bg); }
+
+/* status area */
+#status { display:flex; gap:8px; align-items:center; color:var(--fg); font-size:12px; }
+#save-dot { width:10px; height:10px; border:1px solid var(--fg); display:inline-block; }
+
+/* editor & preview */
+#editor, #preview {
+  box-sizing:border-box; width:100%; height:calc(100vh - var(--menubar-h)); margin:0; padding:18px;
+  font-size:var(--editor-font-size); line-height:1.3; background:var(--bg); color:var(--fg); outline:none; border:none;
+  -webkit-appearance:none; overflow:auto; white-space:pre-wrap; word-wrap:break-word;
+}
+#editor { font-family:var(--mono-font); }
+#preview { display:none; font-family:var(--ui-font); }
+
+/* helpers */
+.visible { display:block !important; }
+.placeholder { font-style:italic; color:gray; }
+
+/* crisp rendering */
+* { image-rendering:pixelated; -webkit-font-smoothing:none; }
+</style>
 </head>
 <body>
 
-    <div class="slds-scope">
-        <div class="slds-card slds-card_boundary slds-m-around_large">
-            <div class="slds-card__header slds-grid">
-                <header class="slds-media slds-media_center slds-has-flexi-truncate">
-                    <div class="slds-media__figure">
-                        <span class="slds-icon_container slds-icon-standard-video" title="Video Gallery">
-                            <svg class="slds-icon slds-icon_small" aria-hidden="true">
-                                <use xlink:href="https://www.lightningdesignsystem.com/assets/icons/standard-sprite/svg/symbols.svg#video"></use>
-                            </svg>
-                            <span class="slds-assistive-text">Video Gallery</span>
-                        </span>
-                    </div>
-                    <div class="slds-media__body">
-                        <h2 class="slds-card__header-title">
-                            <a href="#" class="slds-card__header-link slds-truncate" title="Video Gallery">
-                                <span>Video Gallery</span>
-                            </a>
-                        </h2>
-                    </div>
-                </header>
-                <div class="slds-no-flex">
-                    <button id="sync-all-btn" class="slds-button slds-button_brand">
-                        <svg class="slds-button__icon slds-button__icon_left" aria-hidden="true">
-                            <use xlink:href="https://www.lightningdesignsystem.com/assets/icons/utility-sprite/svg/symbols.svg#sync"></use>
-                        </svg>
-                        Sync All Videos
-                    </button>
-                </div>
-            </div>
-            
-            <div class="slds-card__body slds-p-around_medium">
-                <div class="slds-grid slds-wrap slds-gutters_medium">
-                    <div class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12">
-                        <div class="slds-card slds-card_boundary">
-                            <div class="slds-card__header">
-                                <header class="slds-media slds-media_center slds-has-flexi-truncate">
-                                    <div class="slds-media__figure">
-                                        <span class="slds-icon_container slds-icon-utility-list" title="Available Videos">
-                                            <svg class="slds-icon slds-icon_small" aria-hidden="true">
-                                                <use xlink:href="https://www.lightningdesignsystem.com/assets/icons/utility-sprite/svg/symbols.svg#list"></use>
-                                            </svg>
-                                        </span>
-                                    </div>
-                                    <div class="slds-media__body">
-                                        <h2 class="slds-text-heading_small slds-truncate" title="Video List">Video List</h2>
-                                    </div>
-                                </header>
-                            </div>
-                            <div class="slds-card__body">
-                                <ul id="video-list" class="slds-has-dividers_around-space">
-                                    </ul>
-                            </div>
-                        </div>
-                    </div>
+<!-- Menubar -->
+<div id="menubar">
+  <div id="menu-left">
+    <div style="padding-right:8px;font-weight:bold;">✦</div>
 
-                    <div class="slds-col slds-size_1-of-1 slds-medium-size_8-of-12">
-                        <div class="slds-card slds-card_boundary">
-                            <div class="slds-card__header">
-                                <header class="slds-media slds-media_center slds-has-flexi-truncate">
-                                    <div class="slds-media__figure">
-                                        <span class="slds-icon_container slds-icon-utility-play" title="Video Player">
-                                            <svg class="slds-icon slds-icon_small" aria-hidden="true">
-                                                <use xlink:href="https://www.lightningdesignsystem.com/assets/icons/utility-sprite/svg/symbols.svg#play"></use>
-                                            </svg>
-                                        </span>
-                                    </div>
-                                    <div class="slds-media__body">
-                                        <h2 class="slds-text-heading_small slds-truncate" title="Video Player">Video Player</h2>
-                                    </div>
-                                </header>
-                            </div>
-                            <div class="slds-card__body slds-p-around_small">
-                                <div id="video-player-container" class="video-player-container">
-                                    <video id="video-player" controls class="hidden"></video>
-                                </div>
-                                <div id="message-box" class="slds-notify slds-notify_alert slds-theme_info slds-theme_alert-texture slds-m-top_medium hidden" role="alert">
-                                    <span class="slds-assistive-text">Info</span>
-                                    <span class="slds-icon_container slds-icon-utility-info slds-m-right_x-small">
-                                        <svg class="slds-icon slds-icon_x-small" aria-hidden="true">
-                                            <use xlink:href="https://www.lightningdesignsystem.com/assets/icons/utility-sprite/svg/symbols.svg#info"></use>
-                                        </svg>
-                                    </span>
-                                    <p id="message-text"></p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="menu" data-menu="File" tabindex="0">File
+      <div class="dropdown" data-menu-list="File">
+        <div class="dd-item" data-action="file-new">New ⌘/Ctrl+N</div>
+        <div class="dd-item" data-action="file-open">Open ⌘/Ctrl+O</div>
+        <div class="dd-item" data-action="file-save">Save ⌘/Ctrl+S</div>
+        <div class="dd-item" style="border-bottom:none;"></div>
+        <div id="file-list-placeholder" class="dd-item placeholder">(No saved files)</div>
+      </div>
     </div>
 
-    <script>
-        (function() {
-            // --- 1. MOCK VIDEO DATA & STATE MANAGEMENT ---
-            const videoData = [{
-                id: 'video-1',
-                title: 'Introduction to PWAs',
-                url: 'video1.mp4',
-                isOffline: false
-            }, {
-                id: 'video-2',
-                title: 'Service Worker Deep Dive',
-                url: 'video2.mp4',
-                isOffline: false
-            }, {
-                id: 'video-3',
-                title: 'IndexedDB for Fun and Profit',
-                url: 'video3.mp4',
-                isOffline: false
-            }];
+    <div class="menu" data-menu="Edit" tabindex="0">Edit
+      <div class="dropdown" data-menu-list="Edit">
+        <div class="dd-item" data-action="edit-undo">Undo ⌘/Ctrl+Z</div>
+        <div class="dd-item" data-action="edit-redo">Redo ⇧⌘/Ctrl+⇧Z</div>
+        <div class="dd-item" data-action="edit-copy">Copy ⌘/Ctrl+C</div>
+        <div class="dd-item" data-action="edit-paste">Paste ⌘/Ctrl+V</div>
+        <div class="dd-item" data-action="edit-selectAll">Select All ⌘/Ctrl+A</div>
+      </div>
+    </div>
 
-            // --- 2. UI & EVENT HANDLING ---
-            const videoList = document.getElementById('video-list');
-            const syncAllBtn = document.getElementById('sync-all-btn');
-            const videoPlayerContainer = document.getElementById('video-player-container');
-            const videoPlayer = document.getElementById('video-player');
-            const messageBox = document.getElementById('message-box');
+    <div class="menu" data-menu="Format" tabindex="0">Format
+      <div class="dropdown" data-menu-list="Format">
+        <div class="dd-item" data-action="fmt-bold">Bold ⌘/Ctrl+B</div>
+        <div class="dd-item" data-action="fmt-italic">Italic ⌘/Ctrl+I</div>
+        <div class="dd-item" data-action="fmt-inline-code">Inline Code ⌘/Ctrl+`</div>
+        <div class="dd-item" data-action="fmt-code-block">Code Block ⇧⌘/Ctrl+⇧`</div>
+        <div class="dd-item" data-action="fmt-blockquote">Blockquote ⇧⌘/Ctrl+⇧Q</div>
+        <div class="dd-item" data-action="fmt-bullets">Unordered List ⇧⌘/Ctrl+⇧8</div>
+        <div class="dd-item" data-action="fmt-olist">Ordered List ⇧⌘/Ctrl+⇧7</div>
+        <div class="dd-item" data-action="fmt-h1">H1 ⇧⌘/Ctrl+⇧1</div>
+        <div class="dd-item" data-action="fmt-h2">H2 ⇧⌘/Ctrl+⇧2</div>
+        <div class="dd-item" data-action="fmt-h3">H3 ⇧⌘/Ctrl+⇧3</div>
+        <div class="dd-item" data-action="fmt-link">Link ⌘/Ctrl+K</div>
+      </div>
+    </div>
 
-            const showMessage = (text, type = 'info') => {
-                const messageText = document.getElementById('message-text');
-                messageText.textContent = text;
-                messageBox.classList.remove('hidden', 'slds-theme_success', 'slds-theme_error', 'slds-theme_info');
-                messageBox.classList.add('slds-theme_alert-texture');
+    <div class="menu" data-menu="View" tabindex="0">View
+      <div class="dropdown" data-menu-list="View">
+        <div class="dd-item" data-action="view-togglePreview">Toggle Preview ⇧⌘/Ctrl+⇧P</div>
+        <div class="dd-item" data-action="view-toggleDark">Toggle Dark ⇧⌘/Ctrl+⇧D</div>
+        <div class="dd-item" data-action="view-toggleFont">Toggle Font ⇧⌘/Ctrl+⇧F</div>
+      </div>
+    </div>
+  </div>
 
-                if (type === 'success') {
-                    messageBox.classList.add('slds-theme_success');
-                    messageBox.querySelector('use').setAttribute('xlink:href', 'https://www.lightningdesignsystem.com/assets/icons/utility-sprite/svg/symbols.svg#success');
-                } else if (type === 'error') {
-                    messageBox.classList.add('slds-theme_error');
-                    messageBox.querySelector('use').setAttribute('xlink:href', 'https://www.lightningdesignsystem.com/assets/icons/utility-sprite/svg/symbols.svg#error');
-                } else {
-                    messageBox.classList.add('slds-theme_info');
-                    messageBox.querySelector('use').setAttribute('xlink:href', 'https://www.lightningdesignsystem.com/assets/icons/utility-sprite/svg/symbols.svg#info');
-                }
-                setTimeout(() => {
-                    messageBox.classList.add('hidden');
-                }, 5000);
-            };
+  <div id="menu-right">
+    <div id="status">
+      <div id="save-dot" title="save status" style="background:transparent;"></div>
+      <div id="status-text">Ready</div>
+    </div>
+  </div>
+</div>
 
-            const renderVideoList = () => {
-                videoList.innerHTML = '';
-                videoData.forEach(video => {
-                    const li = document.createElement('li');
-                    li.className = 'slds-item video-list-item';
-                    li.innerHTML = `
-                        <a href="#${video.id}" class="slds-box slds-box_link slds-p-around_small video-list-item-link" onclick="playVideo('${video.id}')">
-                            <div class="slds-media">
-                                <div class="slds-media__figure">
-                                    <span class="slds-icon_container slds-icon-utility-video">
-                                        <svg class="slds-icon slds-icon_medium" aria-hidden="true">
-                                            <use xlink:href="https://www.lightningdesignsystem.com/assets/icons/utility-sprite/svg/symbols.svg#video"></use>
-                                        </svg>
-                                    </span>
-                                </div>
-                                <div class="slds-media__body">
-                                    <p class="slds-text-heading_small">${video.title}</p>
-                                    <p class="slds-text-body_small">
-                                        <span id="${video.id}-status" class="slds-badge ${video.isOffline ? 'slds-theme_success' : 'slds-theme_default'}">${video.isOffline ? 'Available Offline' : 'Online Only'}</span>
-                                    </p>
-                                </div>
-                                <div class="slds-media__figure slds-media__figure_reverse">
-                                    <button id="${video.id}-sync-btn" class="slds-button slds-button_icon slds-button_icon-border sync-btn" data-video-id="${video.id}" ${video.isOffline ? 'disabled' : ''}>
-                                        <svg class="slds-button__icon" aria-hidden="true">
-                                            <use xlink:href="https://www.lightningdesignsystem.com/assets/icons/utility-sprite/svg/symbols.svg#download"></use>
-                                        </svg>
-                                        <span class="slds-assistive-text">Sync</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </a>
-                    `;
-                    videoList.appendChild(li);
-                });
-                attachSyncListeners();
-            };
+<!-- editor & preview -->
+<textarea id="editor" spellcheck="false" autofocus></textarea>
+<div id="preview" role="region" aria-label="Preview area"></div>
 
-            const attachSyncListeners = () => {
-                document.querySelectorAll('.sync-btn').forEach(btn => {
-                    btn.onclick = (e) => {
-                        e.stopPropagation(); // Prevent the parent link from being clicked
-                        const videoId = e.currentTarget.dataset.videoId;
-                        if (videoId) {
-                            syncVideo(videoId);
-                        }
-                    };
-                });
-            };
+<!-- Showdown (local file expected: ./showdown.min.js) -->
+<script src="./showdown.min.js"></script>
 
-            const playVideo = async (videoId) => {
-                const video = videoData.find(v => v.id === videoId);
-                if (!video) {
-                    showMessage('Video not found.', 'error');
-                    return;
-                }
-                videoPlayer.src = video.url;
-                videoPlayer.classList.remove('hidden');
-                showMessage(`Attempting to play video: ${video.title}. The service worker will handle caching.`, 'info');
-                videoPlayer.load();
-            };
+<script>
+/* ======================
+   Core app logic
+   ====================== */
 
-            const syncVideo = async (videoId) => {
-                const video = videoData.find(v => v.id === videoId);
-                if (!video) return;
-                const syncBtn = document.getElementById(`${videoId}-sync-btn`);
-                const statusSpan = document.getElementById(`${videoId}-status`);
-                syncBtn.disabled = true;
-                syncBtn.textContent = '';
-                statusSpan.textContent = 'Syncing...';
-                statusSpan.className = 'slds-badge slds-theme_warning';
+/* helpers */
+const isMac = navigator.platform.toUpperCase().includes('MAC');
+function modPressed(e){ return isMac ? e.metaKey : e.ctrlKey; }
+function $all(sel, root=document){ return Array.from(root.querySelectorAll(sel)); }
+function $(sel, root=document){ return root.querySelector(sel); }
 
-                try {
-                    const response = await fetch(video.url);
-                    if (!response.ok) {
-                        throw new Error(`Network response was not ok. Status: ${response.status}`);
-                    }
-                    video.isOffline = true;
-                    syncBtn.disabled = true;
-                    syncBtn.textContent = '';
-                    statusSpan.textContent = 'Available Offline';
-                    statusSpan.className = 'slds-badge slds-theme_success';
-                    showMessage(`Video '${video.title}' synced successfully!`, 'success');
-                    renderVideoList(); // Re-render to update the button icon
-                } catch (error) {
-                    console.error(`Failed to sync video: ${video.title}`, error);
-                    showMessage(`Failed to sync video '${video.title}'. The video file was not found or could not be accessed. Please ensure the file exists at: ${video.url}`, 'error');
-                    video.isOffline = false;
-                    syncBtn.disabled = false;
-                    syncBtn.textContent = 'Sync';
-                    statusSpan.textContent = 'Online Only';
-                    statusSpan.className = 'slds-badge slds-theme_default';
-                }
-            };
+/* DOM refs */
+const editor = $('#editor');
+const preview = $('#preview');
+const saveDot = $('#save-dot');
+const statusText = $('#status-text');
 
-            const syncAllVideos = async () => {
-                showMessage('Initiated sync for all videos.', 'info');
-                for (const video of videoData) {
-                    if (!video.isOffline) {
-                        await syncVideo(video.id);
-                    }
-                }
-            };
-            
-            const handleDeepLink = () => {
-                const videoId = window.location.hash.slice(1);
-                if (videoId) {
-                    playVideo(videoId);
-                }
-            };
+/* menus open on click (System 1) */
+$all('.menu').forEach(menu => {
+  menu.addEventListener('click', e => {
+    e.stopPropagation();
+    const wasOpen = menu.classList.contains('open');
+    closeAllMenus();
+    if(!wasOpen){
+      menu.classList.add('open');
+      if(menu.dataset.menu === 'File') refreshFileListInMenu();
+    }
+  });
+  menu.addEventListener('keydown', e => { if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); menu.click(); } });
+});
+document.addEventListener('click', () => closeAllMenus());
+function closeAllMenus(){ $all('.menu.open').forEach(m => m.classList.remove('open')); }
 
-            // --- 3. INDEXEDDB SETUP ---
-            const DB_NAME = 'offline-videos-db';
-            const DB_VERSION = 1;
-            const DB_STORE_NAME = 'videos';
-            let db;
+/* Showdown converter must be present (showdown.min.js loaded locally) */
+if (typeof showdown === 'undefined') {
+  console.error('showdown not loaded. Make sure ./showdown.min.js is present.');
+}
+const converter = (typeof showdown !== 'undefined') ? new showdown.Converter({
+  simplifiedAutoLink: true,
+  literalMidWordUnderscores: true,
+  excludeTrailingPunctuationFromURLs: true,
+  strikethrough: true,
+  tables: true,
+  ghCodeBlocks: true
+}) : null;
 
-            const openDatabase = () => {
-                return new Promise((resolve, reject) => {
-                    const request = indexedDB.open(DB_NAME, DB_VERSION);
-                    request.onupgradeneeded = (event) => {
-                        const db = event.target.result;
-                        if (!db.objectStoreNames.contains(DB_STORE_NAME)) {
-                            db.createObjectStore(DB_STORE_NAME, { keyPath: 'id' });
-                        }
-                    };
-                    request.onsuccess = (event) => {
-                        resolve(event.target.result);
-                    };
-                    request.onerror = (event) => {
-                        console.error('IndexedDB error:', event.target.error);
-                        reject(event.target.error);
-                    };
-                });
-            };
+/* IndexedDB wrapper */
+const DB_NAME = 'system1-md';
+const STORE = 'files';
+let dbPromise = null;
+function openDB(){
+  if(dbPromise) return dbPromise;
+  dbPromise = new Promise((resolve,reject)=>{
+    const r = indexedDB.open(DB_NAME,1);
+    r.onupgradeneeded = e => {
+      const db = e.target.result;
+      if(!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: 'name' });
+    };
+    r.onsuccess = ()=> resolve(r.result);
+    r.onerror = ()=> reject(r.error);
+  });
+  return dbPromise;
+}
+async function saveToDB(name, content){
+  const db = await openDB();
+  return new Promise((res, rej) => {
+    const tx = db.transaction(STORE,'readwrite');
+    tx.objectStore(STORE).put({ name, content, updated: Date.now() });
+    tx.oncomplete = ()=> res();
+    tx.onerror = ()=> rej(tx.error);
+  });
+}
+async function readFromDB(name){
+  const db = await openDB();
+  return new Promise((res, rej) => {
+    const tx = db.transaction(STORE,'readonly');
+    const req = tx.objectStore(STORE).get(name);
+    req.onsuccess = ()=> res(req.result ? req.result.content : null);
+    req.onerror = ()=> rej(req.error);
+  });
+}
+async function listFromDB(){
+  const db = await openDB();
+  return new Promise((res, rej) => {
+    const tx = db.transaction(STORE, 'readonly');
+    const out = [];
+    const req = tx.objectStore(STORE).openCursor();
+    req.onsuccess = e => {
+      const cur = e.target.result;
+      if(!cur) { res(out); return; }
+      out.push({ name: cur.value.name, updated: cur.value.updated });
+      cur.continue();
+    };
+    req.onerror = ()=> rej(req.error);
+  });
+}
 
-            const checkOfflineStatus = async () => {
-                const db = await openDatabase();
-                const transaction = db.transaction([DB_STORE_NAME], 'readonly');
-                const store = transaction.objectStore(DB_STORE_NAME);
-                const syncedVideoUrls = await new Promise((resolve, reject) => {
-                    const request = store.getAllKeys();
-                    request.onsuccess = () => resolve(request.result);
-                    request.onerror = () => reject([]);
-                });
+/* state */
+let currentFile = null;
+let autosaveTimer = null;
+const AUTOSAVE_DELAY = 700;
+let unsaved = false;
 
-                videoData.forEach(video => {
-                    video.isOffline = syncedVideoUrls.includes(video.url);
-                });
-                renderVideoList();
-            };
+/* save indicator */
+function setSaveState(state){
+  switch(state){
+    case 'saving': saveDot.style.background = 'transparent'; saveDot.style.borderColor = getComputedStyle(document.body).color; statusText.textContent = 'Saving...'; break;
+    case 'saved': saveDot.style.background = getComputedStyle(document.body).color; statusText.textContent = 'Saved'; break;
+    case 'unsaved': saveDot.style.background = 'transparent'; statusText.textContent = 'Unsaved'; break;
+    case 'error': saveDot.style.background = 'transparent'; statusText.textContent = 'Save error'; break;
+    default: saveDot.style.background = 'transparent'; statusText.textContent = 'Ready'; break;
+  }
+}
 
-            const initializeApp = async () => {
-                try {
-                    db = await openDatabase();
-                    await checkOfflineStatus();
-                    renderVideoList();
-                    handleDeepLink();
-                    syncAllBtn.onclick = syncAllVideos;
-                } catch (error) {
-                    console.error('App initialization failed:', error);
-                    showMessage('App failed to load. Check console for details.', 'error');
-                }
-            };
+/* autosave */
+function scheduleAutosave(){
+  setSaveState('saving');
+  clearTimeout(autosaveTimer);
+  autosaveTimer = setTimeout(async () => {
+    try {
+      if(!currentFile) currentFile = await generateUntitled();
+      await saveToDB(currentFile, editor.value);
+      localStorage.setItem('lastFile', currentFile);
+      unsaved = false;
+      setSaveState('saved');
+      refreshFileListInMenu();
+    } catch(err){
+      console.error('save err', err);
+      setSaveState('error');
+    }
+  }, AUTOSAVE_DELAY);
+}
+async function generateUntitled(){
+  const files = await listFromDB();
+  let i=1;
+  while(true){
+    const name = `Untitled ${i}.md`;
+    if(!files.some(f=>f.name === name)) return name;
+    i++;
+  }
+}
 
-            window.addEventListener('load', () => {
-                console.log("App load event fired.");
-                if ('serviceWorker' in navigator && window.location.protocol !== 'blob:') {
-                    navigator.serviceWorker.register('service-worker.js')
-                    .then(registration => {
-                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                        initializeApp();
-                    })
-                    .catch(err => {
-                        console.error('ServiceWorker registration failed: ', err);
-                        showMessage('App failed to load. Check console for details.', 'error');
-                        initializeApp(); // Run initialization anyway for a fallback UI
-                    });
-                } else {
-                    console.warn('Service workers are not supported or available in this browser. PWA features will not be available.');
-                    initializeApp(); // Run initialization without service worker support
-                }
-            });
-            window.addEventListener('hashchange', handleDeepLink);
-        })();
-    </script>
+/* simple undo/redo */
+const undoStack = [];
+const redoStack = [];
+let lastSnapshot = editor.value;
+function recordHistory(){ const cur = editor.value; if(cur === lastSnapshot) return; undoStack.push(lastSnapshot); if(undoStack.length>200) undoStack.shift(); lastSnapshot = cur; redoStack.length=0; }
+function doUndo(){ if(!undoStack.length) return; redoStack.push(editor.value); editor.value = undoStack.pop(); editor.dispatchEvent(new Event('input')); }
+function doRedo(){ if(!redoStack.length) return; undoStack.push(editor.value); editor.value = redoStack.pop(); editor.dispatchEvent(new Event('input')); }
+
+/* Formatting helpers (Gruber actions) */
+function wrapSelection(open, close=null){ if(close===null) close=open; const s=editor.selectionStart, e=editor.selectionEnd; const sel = editor.value.slice(s,e); editor.setRangeText(open+sel+close, s, e, 'end'); editor.focus(); editor.dispatchEvent(new Event('input')); }
+function prefixLines(prefix){ const s=editor.selectionStart, e=editor.selectionEnd; const before=editor.value.slice(0,s); const sel=editor.value.slice(s,e); const after=editor.value.slice(e); const out = sel.split('\n').map(l => l.length ? prefix + l : l).join('\n'); editor.value = before + out + after; editor.setSelectionRange(before.length, before.length + out.length); editor.dispatchEvent(new Event('input')); }
+function insertLinkPrompt(){ const s=editor.selectionStart, e=editor.selectionEnd; const sel=editor.value.slice(s,e) || 'link-text'; const url = prompt('URL (include https://)', 'https://'); if(!url) return; editor.setRangeText(`[${sel}](${url})`, s, e, 'end'); editor.dispatchEvent(new Event('input')); }
+function insertInlineCode(){ wrapSelection('`','`'); }
+function insertCodeBlock(){ const s=editor.selectionStart, e=editor.selectionEnd; const sel=editor.value.slice(s,e) || ''; const block = '```\n' + sel + '\n```\n'; editor.setRangeText(block, s, e, 'end'); editor.dispatchEvent(new Event('input')); }
+function insertBlockquote(){ prefixLines('> '); }
+function insertUList(){ prefixLines('- '); }
+function insertOList(){ const s=editor.selectionStart, e=editor.selectionEnd; const before=editor.value.slice(0,s); const sel=editor.value.slice(s,e); const after=editor.value.slice(e); let i=1; const out = sel.split('\n').map(l => l.length ? (i++) + '. ' + l : l).join('\n'); editor.value = before + out + after; editor.setSelectionRange(before.length, before.length + out.length); editor.dispatchEvent(new Event('input')); }
+
+/* preview toggle (inline) */
+function togglePreview(){
+  if(!converter){ alert('Markdown engine not loaded. Make sure showdown.min.js is present.'); return; }
+  if(preview.classList.contains('visible')){
+    preview.classList.remove('visible');
+    editor.classList.add('visible');
+    statusText.textContent = 'Edit';
+  } else {
+    // render using Showdown
+    try { preview.innerHTML = converter.makeHtml(editor.value); } catch(e){ preview.innerHTML = '<pre>' + escapeHtml(editor.value) + '</pre>'; }
+    preview.classList.add('visible');
+    editor.classList.remove('visible');
+    statusText.textContent = 'Preview';
+  }
+}
+function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* theme & font */
+function applyThemeFromStorage(){ if(localStorage.getItem('sys1-dark') === '1') document.body.classList.add('dark'); else document.body.classList.remove('dark'); }
+function toggleDark(){ document.body.classList.toggle('dark'); localStorage.setItem('sys1-dark', document.body.classList.contains('dark') ? '1':'0'); }
+let fontState = localStorage.getItem('sys1-font') || 'chicago';
+function applyFontFromStorage(){ editor.style.fontFamily = fontState === 'courier' ? 'var(--mono-font)' : 'var(--ui-font)'; }
+function toggleFont(){ fontState = fontState === 'chicago' ? 'courier' : 'chicago'; localStorage.setItem('sys1-font', fontState); applyFontFromStorage(); }
+
+/* ACTIONS mapping */
+const ACTIONS = {
+  'file-new': async ()=>{ const name = prompt('New filename (include .md):','Untitled.md'); if(!name) return; currentFile = name; editor.value=''; recordHistory(); scheduleAutosave(); },
+  'file-open': async ()=>{ const fileMenu = document.querySelector('.menu[data-menu="File"]'); closeAllMenus(); fileMenu.classList.add('open'); await refreshFileListInMenu(); },
+  'file-save': async ()=>{ if(!currentFile) currentFile = await generateUntitled(); setSaveState('saving'); try{ await saveToDB(currentFile, editor.value); localStorage.setItem('lastFile', currentFile); setSaveState('saved'); refreshFileListInMenu(); }catch(e){ setSaveState('error'); } },
+  'edit-undo': ()=> doUndo(),
+  'edit-redo': ()=> doRedo(),
+  'edit-copy': async ()=>{ try{ await navigator.clipboard.writeText(getSelectionText()); }catch(e){ fallbackCopy(getSelectionText()); } },
+  'edit-paste': async ()=>{ try{ const t = await navigator.clipboard.readText(); insertTextAtCursor(t); }catch(e){} },
+  'edit-selectAll': ()=> { editor.select(); },
+  'fmt-bold': ()=> wrapSelection('**','**'),
+  'fmt-italic': ()=> wrapSelection('*','*'),
+  'fmt-inline-code': ()=> insertInlineCode(),
+  'fmt-code-block': ()=> insertCodeBlock(),
+  'fmt-blockquote': ()=> insertBlockquote(),
+  'fmt-bullets': ()=> insertUList(),
+  'fmt-olist': ()=> insertOList(),
+  'fmt-h1': ()=> prefixLines('# '),
+  'fmt-h2': ()=> prefixLines('## '),
+  'fmt-h3': ()=> prefixLines('### '),
+  'fmt-link': ()=> insertLinkPrompt(),
+  'view-togglePreview': ()=> togglePreview(),
+  'view-toggleDark': ()=> toggleDark(),
+  'view-toggleFont': ()=> toggleFont()
+};
+
+/* wire menu clicks for items that have data-action (stopPropagation so menu doesn't immediately close) */
+$all('.dd-item[data-action]').forEach(item => {
+  item.addEventListener('click', ev => {
+    ev.stopPropagation();
+    const a = item.getAttribute('data-action');
+    if(a && ACTIONS[a]) ACTIONS[a]();
+    closeAllMenus();
+  });
+});
+
+/* dynamic File menu population */
+async function refreshFileListInMenu(){
+  const placeholder = $('#file-list-placeholder');
+  const parent = placeholder.parentElement;
+  parent.querySelectorAll('.dynamic-file').forEach(n => n.remove());
+  try {
+    const files = await listFromDB();
+    if(files.length === 0) { placeholder.style.display = 'block'; }
+    else {
+      placeholder.style.display = 'none';
+      files.sort((a,b)=> (b.updated||0) - (a.updated||0));
+      files.forEach(f => {
+        const div = document.createElement('div');
+        div.className = 'dd-item dynamic-file';
+        div.textContent = f.name;
+        div.title = f.name;
+        div.addEventListener('click', async ev => {
+          ev.stopPropagation();
+          currentFile = f.name;
+          const content = await readFromDB(f.name);
+          editor.value = content || '';
+          lastSnapshot = editor.value;
+          editor.dispatchEvent(new Event('input'));
+          closeAllMenus();
+          setSaveState('saved');
+          localStorage.setItem('lastFile', currentFile);
+        });
+        parent.appendChild(div);
+      });
+    }
+  } catch(err){ console.error('refresh files', err); }
+}
+
+/* editor helper functions */
+function getSelectionText(){ return editor.value.substring(editor.selectionStart, editor.selectionEnd); }
+function insertTextAtCursor(text){ const s=editor.selectionStart, e=editor.selectionEnd; editor.setRangeText(text, s, e, 'end'); editor.dispatchEvent(new Event('input')); }
+
+/* keyboard shortcuts (cross-platform) */
+document.addEventListener('keydown', e => {
+  const mod = modPressed(e);
+  const shift = e.shiftKey;
+  const key = e.key.toLowerCase();
+
+  // only handle combos that we implement; otherwise let browser behavior occur
+  if(!mod && !e.altKey) return;
+
+  // file commands
+  if(mod && !shift && key === 'n'){ e.preventDefault(); ACTIONS['file-new'](); return; }
+  if(mod && !shift && key === 'o'){ e.preventDefault(); ACTIONS['file-open'](); return; }
+  if(mod && !shift && key === 's'){ e.preventDefault(); ACTIONS['file-save'](); return; }
+
+  // undo/redo
+  if(mod && !shift && key === 'z'){ e.preventDefault(); ACTIONS['edit-undo'](); return; }
+  if(mod && shift && key === 'z'){ e.preventDefault(); ACTIONS['edit-redo'](); return; }
+
+  // format shortcuts
+  if(mod && !shift && key === 'b'){ e.preventDefault(); ACTIONS['fmt-bold'](); return; }
+  if(mod && !shift && key === 'i'){ e.preventDefault(); ACTIONS['fmt-italic'](); return; }
+  if(mod && !shift && e.key === '`'){ e.preventDefault(); ACTIONS['fmt-inline-code'](); return; }
+  if(mod && shift && e.key === '`'){ e.preventDefault(); ACTIONS['fmt-code-block'](); return; }
+  if(mod && !shift && key === 'k'){ e.preventDefault(); ACTIONS['fmt-link'](); return; }
+  if(mod && shift && key === 'q'){ e.preventDefault(); ACTIONS['fmt-blockquote'](); return; }
+  if(mod && shift && key === '8'){ e.preventDefault(); ACTIONS['fmt-bullets'](); return; }
+  if(mod && shift && key === '7'){ e.preventDefault(); ACTIONS['fmt-olist'](); return; }
+  if(mod && shift && key === '1'){ e.preventDefault(); ACTIONS['fmt-h1'](); return; }
+  if(mod && shift && key === '2'){ e.preventDefault(); ACTIONS['fmt-h2'](); return; }
+  if(mod && shift && key === '3'){ e.preventDefault(); ACTIONS['fmt-h3'](); return; }
+
+  // view toggles
+  if(mod && shift && key === 'p'){ e.preventDefault(); ACTIONS['view-togglePreview'](); return; }
+  if(mod && shift && key === 'd'){ e.preventDefault(); ACTIONS['view-toggleDark'](); return; }
+  if(mod && shift && key === 'f'){ e.preventDefault(); ACTIONS['view-toggleFont'](); return; }
+});
+
+/* editor input handler -> autosave + history */
+editor.addEventListener('input', () => {
+  unsaved = true;
+  setSaveState('unsaved');
+  recordHistory();
+  scheduleAutosave();
+});
+
+/* startup: restore theme, font, last file */
+(async function startup(){
+  try {
+    if(localStorage.getItem('sys1-dark') === '1') document.body.classList.add('dark');
+    fontState = localStorage.getItem('sys1-font') || 'chicago';
+    applyFontFromStorage();
+
+    const last = localStorage.getItem('lastFile');
+    if(last){
+      currentFile = last;
+      const content = await readFromDB(last);
+      if(content !== null){
+        editor.value = content;
+        lastSnapshot = editor.value;
+        setSaveState('saved');
+      }
+    } else {
+      setSaveState('ready');
+    }
+    refreshFileListInMenu();
+  } catch(err) {
+    console.error('startup err', err);
+    setSaveState('error');
+  }
+})();
+
+/* small fallback copy */
+function fallbackCopy(text){ const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch(_){} ta.remove(); }
+
+/* close menus on Escape */
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeAllMenus(); });
+
+/* register service worker */
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{/*ignore*/});
+</script>
 </body>
 </html>
