@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Factor Sparsity</title>
+  <meta name="description" content="Personal projects by Larry Davis. Most of what matters comes from a few things.">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+  <script>document.documentElement.classList.add('js')</script>
+  <script src="assets/site.js" defer></script>
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+
+  <header class="nav">
+    <a class="wordmark" href="/">factor<i>/</i>sparsity</a>
+    <nav>
+      <a href="#signal">Signal</a>
+      <a href="#noise">Noise</a>
+      <a href="#about">About</a>
+      <a href="https://github.com/factorsparsity">GitHub&nbsp;↗</a>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Tall section; the inner stage is sticky so scrolling drives the sparsify effect. -->
+    <section class="hero" id="hero">
+      <div class="stage">
+        <canvas id="field" aria-hidden="true"></canvas>
+
+        <div class="hero-copy">
+          <p class="kicker mono">Larry Davis &mdash; things made for their own sake</p>
+          <h1>
+            <span>Most of what</span>
+            <span>matters comes</span>
+            <span>from <em>a&nbsp;few</em> things.</span>
+          </h1>
+        </div>
+
+        <p class="hero-after" aria-hidden="true">
+          <em>These are the few.</em>
+        </p>
+
+        <dl class="readout mono" aria-hidden="true">
+          <div><dt>n</dt><dd id="r-n">&mdash;</dd></div>
+          <div><dt>top 20% share</dt><dd id="r-share">&mdash;</dd></div>
+          <div><dt>visible</dt><dd id="r-vis">&mdash;</dd></div>
+        </dl>
+
+        <p class="cue mono" aria-hidden="true"><span>scroll to sparsify</span></p>
+      </div>
+    </section>
+
+    <section id="signal" class="block">
+      <header class="block-head reveal">
+        <span class="mono">01 / Signal</span>
+        <h2>The vital <em>few</em></h2>
+        <p>Projects that account for most of the effect. Kept short on purpose.</p>
+      </header>
+
+      <ol class="works">
+        <li class="work crt reveal">
+          <a href="https://github.com/factorsparsity/240-MP">
+            <span class="idx mono">A</span>
+            <span class="title">240-MP</span>
+            <span class="desc">
+              A retro VCR-style media frontend for CRT TVs, by Anthony Caccese. I'm adding new inputs to the deck:
+              <span class="channels mono">
+                <span><b>CH 03</b> HDHomeRun live TV module</span>
+                <span><b>CH 04</b> Music TV module</span>
+                <span><b>CH 05</b> YouTube playlist shuffle</span>
+                <span><b>AUX</b> Front panel <i>in progress</i></span>
+              </span>
+            </span>
+            <span class="meta mono">QML · mpv · Raspberry Pi<br>contributor to anthonycaccese/240-MP</span>
+            <span class="go" aria-hidden="true"><b>▶ PLAY</b></span>
+          </a>
+        </li>
+        <!-- Add the next featured project here. Copy projects/example.html for a write-up page. -->
+        <li class="work pending reveal">
+          <div>
+            <span class="idx mono">B</span>
+            <span class="title">In the lab</span>
+            <span class="desc">The next factor. Not significant yet.</span>
+            <span class="meta mono">p &gt; 0.05</span>
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <section id="noise" class="block">
+      <header class="block-head reveal">
+        <span class="mono">02 / Noise</span>
+        <h2>The trivial <em>many</em></h2>
+        <p>Small experiments, one-offs, and things that didn't pan out. Worth keeping anyway.</p>
+      </header>
+
+      <ul class="noise">
+        <!-- Newest first. -->
+        <li class="reveal">
+          <a href="https://github.com/factorsparsity/factorsparsity.github.io">
+            <span class="mono">2026.10 · site</span>
+            <strong>This website</strong>
+            <span>Hand-written HTML, one canvas, no build step.</span>
+          </a>
+        </li>
+        <li class="reveal empty">
+          <span class="mono">next · ?</span>
+          <strong>+ another experiment</strong>
+        </li>
+      </ul>
+    </section>
+
+    <section id="about" class="block about">
+      <header class="block-head reveal">
+        <span class="mono">03 / About</span>
+      </header>
+      <div class="about-grid">
+        <p class="statement reveal">
+          I build things on nights and weekends. Most of them are noise. A&nbsp;few turn out to
+          be <em>signal</em>, and those are what this site is for.
+        </p>
+        <div class="notes reveal">
+          <p>
+            <span class="mono">[1]</span>
+            <a href="https://en.wikipedia.org/wiki/Sparsity-of-effects_principle">Sparsity of effects.</a>
+            A system is usually driven by a handful of main effects and low-order interactions.
+            Everything else is noise.
+          </p>
+          <p>
+            <span class="mono">[2]</span>
+            <a href="https://en.wikipedia.org/wiki/Pareto_principle">Pareto principle.</a>
+            Roughly 80% of the outcome comes from 20% of the causes. The dots up top follow
+            that distribution, re-sampled on every visit.
+          </p>
+          <p>
+            <span class="mono">[3]</span>
+            The day job is <a href="https://typif.ai">typif.ai</a>.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="foot-links mono">
+      <a href="https://github.com/factorsparsity">github/factorsparsity ↗</a>
+      <a href="https://typif.ai">typif.ai ↗</a>
+      <a href="mailto:hello@typif.ai">hello@typif.ai</a>
+      <span>&copy; 2026 Larry Davis</span>
+    </div>
+    <p class="foot-mark" aria-hidden="true">factor<i>/</i>sparsity</p>
+  </footer>
+</body>
+</html>
