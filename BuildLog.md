@@ -9,6 +9,8 @@
 - `service-worker.js` is a kill switch for the old gallery's service worker on this origin. Without it, returning
   visitors keep getting the cached gallery. Safe to delete after a few months; don't reuse the path for a real SW
   without considering that.
+- Leftover repo `factorsparsity/github.io` (README + offline folder, no Pages) still existed at end of session;
+  user tried deleting it. Not related to this site.
 
 ## 2026-10-20 — Redesign: generative, dark, less literal
 
@@ -33,4 +35,6 @@ very literal", wanted "a really cool design". v1 replaced wholesale.
 - Verifying: Chrome extension wasn't connected. Headless `--screenshot` can't scroll, and an iframe harness gave
   false blanks (CSS `scroll-behavior: smooth` + virtual time). What worked: a small Node CDP script (Node 26 has a
   global WebSocket) that sets the viewport, scrolls with `behavior:'instant'`, dispatches mouse moves, and screenshots.
+  Saved as `tools/screenshots.mjs`; it shoots desktop + 390px mobile at each section and the 240-MP hover, and
+  prints page scrollWidth vs viewport width to catch horizontal overflow.
 - Footer wordmark at 14.2vw fits "factor/sparsity" in one line; 19.5vw clipped it.
