@@ -6,6 +6,9 @@
   and its Pages turned off. User wants it off factorsparsity entirely and will probably make it private, so it is
   also removed from the Noise section. Don't re-add it.
 - This repo now is `factorsparsity/factorsparsity.github.io`, served by GitHub Pages from `main` at the root.
+- `service-worker.js` is a kill switch for the old gallery's service worker on this origin. Without it, returning
+  visitors keep getting the cached gallery. Safe to delete after a few months; don't reuse the path for a real SW
+  without considering that.
 
 ## 2026-10-20 — Redesign: generative, dark, less literal
 
